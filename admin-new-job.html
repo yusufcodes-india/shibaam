@@ -559,6 +559,22 @@
 
       saveBtn.disabled = true;
       statusEl.style.color = "#444";
+      statusEl.textContent = "Checking Job No...";
+      try {
+        const existing = await api('admin_get_job', { token: getAdminToken(), jobNo });
+        if (existing && existing.job) {
+          const next = generateJobNo();
+          document.getElementById('jobNo').value = next;
+          statusEl.style.color = "#b33";
+          statusEl.textContent = "Job No. " + jobNo + " already exists, generating next: " + next;
+          saveBtn.disabled = false;
+          return;
+        }
+      } catch (preErr) {
+        // "Job not found" (or unreachable backend) -> proceed to create attempt,
+        // which gives the definitive result below.
+        console.warn('Duplicate pre-check:', preErr);
+      }
       statusEl.textContent = "Saving...";
       try{
         await api('admin_create_job', {
@@ -574,9 +590,11 @@
         statusEl.style.color = "#2a7d2a";
         statusEl.textContent = "Saved! Job order recorded to your Google Sheet.";
       }catch(err){
-        console.warn('Backend create failed, local only:', err);
-        statusEl.style.color = "#2a7d2a";
-        statusEl.textContent = "Saved locally (backend unreachable: " + err.message + ").";
+        // Backend failure is shown as-is: no local mirror, Save stays enabled.
+        statusEl.style.color = "#b33";
+        statusEl.textContent = "Save failed: " + err.message;
+        saveBtn.disabled = false;
+        return;
       }
       // Mirror to localStorage so admin-jobs.html list shows it
       mirrorJobLocal({

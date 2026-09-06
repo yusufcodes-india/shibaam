@@ -698,11 +698,10 @@
         }
         if (!data.driveFolderId) data.driveFolderId = driveLinkInput.dataset.folderId || '';
 
-        // Step 2: Save measurement data (backend + local mirror)
+        // Step 2: Save measurement data (backend first; local mirror only on success)
         saveBtn.textContent = 'Saving measurement...';
         if (isAppsScriptConfigured()) {
-          try { await saveMeasurementViaAppsScript(data); }
-          catch (backendErr) { console.warn('Backend save failed, using local only:', backendErr); }
+          await saveMeasurementViaAppsScript(data);
         }
         saveMeasurementLocal(data);
 
