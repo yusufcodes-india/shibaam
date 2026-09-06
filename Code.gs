@@ -366,6 +366,12 @@ function loginCustomer(data) {
   if (!/^(H\d{4}|SHBM-\d{4})$/.test(jobNo)) throw new Error('Enter Job No. as H#### or SHBM-#### format');
   var job = findBy('Jobs', 'jobNo', jobNo);
   if (!job) {
+    // Alternate format retry: H4604 <-> SHBM-4604 (sheet stores exact format)
+    var alt = (jobNo.indexOf('SHBM-') === 0) ? jobNo.replace(/^SHBM-/, 'H')
+      : (/^H\d{4}$/.test(jobNo) ? 'SHBM-' + jobNo.slice(1) : null);
+    if (alt) job = findBy('Jobs', 'jobNo', alt);
+  }
+  if (!job) {
     var rows = getRows(getSheet('Jobs'));
     for (var i = 0; i < rows.length; i++) {
       if (normJobNo(rows[i].jobNo) === jobNo) { job = rows[i]; break; }

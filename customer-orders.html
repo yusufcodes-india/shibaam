@@ -434,6 +434,17 @@
         await showOrdersServer();
       } catch (err) {
         console.warn('Backend login failed, local fallback:', err);
+        // Alternate format retry: H4604 <-> SHBM-4604 (backend stores exact format)
+        const altJobNo = jobNo.indexOf('SHBM-') === 0 ? jobNo.replace(/^SHBM-/, 'H')
+          : (/^H\d{4}$/.test(jobNo) ? 'SHBM-' + jobNo.slice(1) : null);
+        if (altJobNo) {
+          try {
+            const res2 = await api('login_customer', { jobNo: altJobNo });
+            persistCustomerSession(altJobNo, res2.token);
+            await showOrdersServer();
+            return;
+          } catch (e2) { console.warn('Alternate format login failed:', e2); }
+        }
         if (DEMO_ORDERS[jobNo]) {
           persistCustomerSession(jobNo, '');
           showOrders(jobNo);
