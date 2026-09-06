@@ -300,7 +300,7 @@
 </head>
 
 <body>
-  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <script>(function(){try{var k=null;try{k=sessionStorage.getItem("shibaam_admin_key")||localStorage.getItem("shibaam_admin_key");}catch(e){}if(!k){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
   <div class="page">
 
     <header>
@@ -392,7 +392,7 @@
 
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
-    const SITE_URL = 'https://shibaam.vercel.app'; // <-- set your deployed domain (no trailing slash)
+    const SITE_URL = 'https://shibaamsite.vercel.app'; // <-- deployed domain (no trailing slash)
     async function api(action, payload) {
       payload = payload || {};
       payload.action = action;
@@ -401,7 +401,7 @@
       if (!j.success) throw new Error(j.error || 'Request failed');
       return j.data;
     }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
 
     // Sales team -> datalist suggestions (localStorage first, backend sync)
     function loadSalesTeam() {
@@ -663,8 +663,25 @@
         statusEl.textContent = "Enter the Job No first.";
         return;
       }
-      const total = document.getElementById('grandTotal').value || '0';
-      const message = `Hello ${customerName}, your SHIBAAM job ${jobNo} is saved. Track here: ${SITE_URL}/customer-orders.html?job=${jobNo} Total Rs.${total}.`;
+      const rows = getParticularsData().filter(p => p.name);
+      if(!rows.length){
+        statusEl.style.color = "#b33";
+        statusEl.textContent = "Add at least one particular first.";
+        return;
+      }
+      const inr = n => '₹' + (parseFloat(n) || 0).toLocaleString('en-IN', {maximumFractionDigits: 0});
+      const salesPerson = document.getElementById('salesPerson').value.trim() || '—';
+      const address = document.getElementById('address').value.trim() || '—';
+      const deliveryDays = document.getElementById('deliveryDays').value.trim() || '45';
+      let dateStr = document.getElementById('date').value;
+      try {
+        dateStr = new Date(dateStr).toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'});
+      } catch (e) { dateStr = dateStr || '—'; }
+      const grandTotal = parseFloat(document.getElementById('grandTotal').value) || 0;
+      const itemsText = rows.map((p, i) =>
+        `${i + 1}. ${(p.name || '').toUpperCase()} - ${inr(p.price)}\n   ${(p.detail || '').trim() || '—'}`
+      ).join('\n\n\n');
+      const message = `Thank you for trusting SHIBAAM Collection.\n\nYour job order has been successfully created.\n\n\n*Job No:* ${jobNo}\n*Date:* ${dateStr}\n*Sales Person:* ${salesPerson}\n\n\n*Items:*\n${itemsText}\n\n\n*Grand Total:* ${inr(grandTotal)}\n\n\n*Delivery Address:*\n${address.toUpperCase()}\n\n\n*Estimated Delivery:* ${deliveryDays} days\n\n\n*Your Key License / Job No:* ${jobNo}\nPlease keep this Job Number safe as it will be required to track your order.\n\n\nTrack your order at: ${SITE_URL}/customer-orders.html\n\n\nFor queries:\nLadies & Groom Dept: 9601879952\nSaya / Kurta / Ezar: 7984986113\n\n\nThank you for choosing SHIBAAM Collection.\n\n\n${SITE_URL}`;
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
       statusEl.style.color = "#2a7d2a";
       statusEl.textContent = "WhatsApp opened — just tap Send.";

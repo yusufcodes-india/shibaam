@@ -310,7 +310,7 @@
 </head>
 
 <body>
-  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <script>(function(){try{var k=null;try{k=sessionStorage.getItem("shibaam_admin_key")||localStorage.getItem("shibaam_admin_key");}catch(e){}if(!k){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
   <div class="page">
 
     <header>
@@ -326,6 +326,7 @@
       <div class="secure">
         <span class="secure-dot"></span>
         Secure Portal
+        <button id="adminLogout" style="margin-left:10px;background:transparent;border:1px solid #ddcabe;border-radius:999px;color:var(--brown);font-size:11px;font-weight:700;padding:5px 12px;cursor:pointer;">Logout</button>
       </div>
     </header>
 
@@ -494,5 +495,14 @@
     </footer>
 
   </div>
+  <script>
+    document.getElementById('adminLogout').addEventListener('click', () => {
+      ['shibaam_admin_key','shibaam_admin_token','shibaam_admin_role','shibaam_admin_name'].forEach(k => {
+        try { sessionStorage.removeItem(k); } catch (e) {}
+        try { localStorage.removeItem(k); } catch (e) {}
+      });
+      window.location.href = './admin-login.html';
+    });
+  </script>
 </body>
 </html>

@@ -201,7 +201,7 @@
 </head>
 
 <body>
-  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <script>(function(){try{var k=null;try{k=sessionStorage.getItem("shibaam_admin_key")||localStorage.getItem("shibaam_admin_key");}catch(e){}if(!k){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
   <div class="page">
 
     <header>
@@ -403,10 +403,10 @@
       if (!j.success) throw new Error(j.error || 'Request failed');
       return j.data;
     }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
     
     // Check if Super Admin
-    const role = sessionStorage.getItem('shibaam_admin_role');
+    const role = (() => { try { return sessionStorage.getItem('shibaam_admin_role') || localStorage.getItem('shibaam_admin_role') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_role') || ''; } catch (e2) { return ''; } } })();
     if (role !== 'SUPER_ADMIN') {
       document.body.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;">

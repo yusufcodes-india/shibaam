@@ -201,8 +201,18 @@
           required
         >
       </div>
+      <div class="form-group" style="margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);cursor:pointer;">
+          <input type="checkbox" id="rememberDevice" checked style="width:16px;height:16px;accent-color:var(--brown);">
+          Remember this device
+        </label>
+      </div>
       <button type="submit" class="btn-primary" id="submitBtn">Sign In</button>
     </form>
+
+    <div style="text-align:center;margin-top:10px;">
+      <a href="#" id="forgetDevice" style="color:var(--muted);font-size:12px;">Forget this device</a>
+    </div>
 
     <div class="key-hint">
       <strong>Key License format:</strong> SHBM-ADMIN-XXXX or SHBM-SUPER-XXXX<br>
@@ -224,7 +234,7 @@
       if (!j.success) throw new Error(j.error || 'Request failed');
       return j.data;
     }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
     
     // Valid key licenses (in production, verify against Apps Script backend)
     const VALID_KEYS = {
@@ -280,6 +290,21 @@
         sessionStorage.setItem('shibaam_admin_key', key);
         sessionStorage.setItem('shibaam_admin_role', user.role);
         sessionStorage.setItem('shibaam_admin_name', user.name);
+        // Remember this device: mirror to localStorage + device id
+        try {
+          if (document.getElementById('rememberDevice').checked) {
+            localStorage.setItem('shibaam_admin_key', key);
+            localStorage.setItem('shibaam_admin_token', sessionStorage.getItem('shibaam_admin_token') || '');
+            localStorage.setItem('shibaam_admin_role', user.role);
+            localStorage.setItem('shibaam_admin_name', user.name);
+            let devId = localStorage.getItem('shibaam_device_id');
+            if (!devId) {
+              devId = 'dev-' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+              localStorage.setItem('shibaam_device_id', devId);
+            }
+            localStorage.setItem('shibaam_device_ts', new Date().toISOString());
+          }
+        } catch (e) { console.warn('remember-device failed', e); }
 
         // Redirect to admin portal
         window.location.href = './admin.html';
@@ -299,9 +324,45 @@
     // Auto-focus
     keyInput.focus();
 
-    // Check if already logged in
+    // Forget this device: clear both storages
+    document.getElementById('forgetDevice').addEventListener('click', (e) => {
+      e.preventDefault();
+      ['shibaam_admin_key','shibaam_admin_token','shibaam_admin_role','shibaam_admin_name'].forEach(k => {
+        try { sessionStorage.removeItem(k); } catch (err) {}
+        try { localStorage.removeItem(k); } catch (err) {}
+      });
+      errorMsg.classList.remove('show');
+    });
+
+    // Check if already logged in (this tab)
     if (sessionStorage.getItem('shibaam_admin_key')) {
       window.location.href = './admin.html';
+    } else {
+      // Remembered device? Re-verify the stored key, then auto-redirect.
+      (async function autoLogin() {
+        let savedKey = null;
+        try { savedKey = localStorage.getItem('shibaam_admin_key'); } catch (e) {}
+        if (!savedKey) return;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Checking saved device...';
+        try {
+          const res = await api('login_admin', { keyLicense: savedKey });
+          sessionStorage.setItem('shibaam_admin_token', res.token);
+          sessionStorage.setItem('shibaam_admin_key', savedKey);
+          sessionStorage.setItem('shibaam_admin_role', res.role);
+          sessionStorage.setItem('shibaam_admin_name', res.name);
+          window.location.href = './admin.html';
+        } catch (err) {
+          // Invalid/revoked key or backend unreachable: clear remembered keys, stay on login
+          if (err && err.message === 'Invalid Key License') {
+            ['shibaam_admin_key','shibaam_admin_token','shibaam_admin_role','shibaam_admin_name'].forEach(k => {
+              try { localStorage.removeItem(k); } catch (e2) {}
+            });
+          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+        }
+      })();
     }
   </script>
 </body>

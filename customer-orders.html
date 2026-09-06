@@ -249,6 +249,12 @@
             <label for="jobNo">Job Number / Key License</label>
             <input type="text" id="jobNo" name="jobNo" placeholder="e.g. H4600" autocomplete="off" required>
           </div>
+          <div class="form-group" style="margin-bottom:16px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);cursor:pointer;">
+              <input type="checkbox" id="rememberDevice" checked style="width:16px;height:16px;accent-color:var(--brown);">
+              Remember this device
+            </label>
+          </div>
           <button type="submit" class="btn-primary" id="submitBtn">View My Orders</button>
         </form>
 
@@ -291,8 +297,8 @@
       if (!j.success) throw new Error(j.error || 'Request failed');
       return j.data;
     }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
-    function getCustomerToken() { try { return sessionStorage.getItem('shibaam_customer_token') || ''; } catch (e) { return ''; } }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
+    function getCustomerToken() { try { return sessionStorage.getItem('shibaam_customer_token') || localStorage.getItem('shibaam_customer_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_customer_token') || ''; } catch (e2) { return ''; } } }
     
     // Demo data - in production, fetch from Apps Script backend
     const DEMO_ORDERS = {
@@ -352,24 +358,40 @@
     const customerNameDisplay = document.getElementById('customerNameDisplay');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    // Check for existing session: gate on token OR saved job, server first
-    const savedJobNo = sessionStorage.getItem('shibaam_customer_jobno');
+    // Check for existing session: gate on token OR saved job, server first.
+    // On return visits, re-login with the remembered Job No. for a fresh
+    // token, then show orders; DEMO_ORDERS only as catch fallback.
+    const savedJobNo = (() => { try { return sessionStorage.getItem('shibaam_customer_jobno') || localStorage.getItem('shibaam_customer_jobno') || ''; } catch (e) { try { return localStorage.getItem('shibaam_customer_jobno') || ''; } catch (e2) { return ''; } } })();
     (async function restoreSession() {
       const token = getCustomerToken();
-      if (!token && !savedJobNo) return;
-      if (token) {
+      let rememberedJob = savedJobNo;
+      if (!rememberedJob) {
+        try { rememberedJob = localStorage.getItem('shibaam_customer_jobno'); } catch (e) {}
+      }
+      if (!token && !rememberedJob) return;
+      if (rememberedJob && !token) {
+        // Remembered device, no live session: fresh login, then orders
+        try {
+          const res = await api('login_customer', { jobNo: rememberedJob });
+          sessionStorage.setItem('shibaam_customer_token', res.token);
+          sessionStorage.setItem('shibaam_customer_jobno', rememberedJob);
+          await showOrdersServer();
+          return;
+        } catch (e) { console.warn('Backend re-login failed, local fallback:', e); }
+      } else if (token) {
         try {
           await showOrdersServer();
           return;
         } catch (e) { console.warn('Backend session failed, local fallback:', e); }
       }
       // DEMO_ORDERS only as catch fallback
-      if (savedJobNo && DEMO_ORDERS[savedJobNo]) {
-        showOrders(savedJobNo);
-      } else if (savedJobNo) {
+      const fallbackJob = rememberedJob || savedJobNo;
+      if (fallbackJob && DEMO_ORDERS[fallbackJob]) {
+        showOrders(fallbackJob);
+      } else if (fallbackJob) {
         // Real session (e.g. SHBM-4605) but backend unreachable: prefill for one-tap retry
-        jobNoInput.value = savedJobNo;
-        showError('Session found for ' + savedJobNo + ' — could not reach server. Tap View My Orders to retry.');
+        jobNoInput.value = fallbackJob;
+        showError('Session found for ' + fallbackJob + ' — could not reach server. Tap View My Orders to retry.');
       }
     })();
 
@@ -391,16 +413,29 @@
       submitBtn.textContent = 'Checking...';
       errorMsg.classList.remove('show');
 
+      const remember = document.getElementById('rememberDevice').checked;
+      function persistCustomerSession(jobNo, token) {
+        sessionStorage.setItem('shibaam_customer_jobno', jobNo);
+        if (token) sessionStorage.setItem('shibaam_customer_token', token);
+        if (remember) {
+          try {
+            localStorage.setItem('shibaam_customer_jobno', jobNo);
+            if (token) localStorage.setItem('shibaam_customer_token', token);
+            if (!localStorage.getItem('shibaam_device_id')) {
+              localStorage.setItem('shibaam_device_id', 'dev-' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36));
+            }
+          } catch (e) { console.warn('remember-device failed', e); }
+        }
+      }
       // Server-first login (Apps Script), DEMO_ORDERS fallback offline
       try {
         const res = await api('login_customer', { jobNo });
-        sessionStorage.setItem('shibaam_customer_token', res.token);
-        sessionStorage.setItem('shibaam_customer_jobno', jobNo);
+        persistCustomerSession(jobNo, res.token);
         await showOrdersServer();
       } catch (err) {
         console.warn('Backend login failed, local fallback:', err);
         if (DEMO_ORDERS[jobNo]) {
-          sessionStorage.setItem('shibaam_customer_jobno', jobNo);
+          persistCustomerSession(jobNo, '');
           showOrders(jobNo);
         } else {
           showError('Invalid Job Number. Please check and try again.');
@@ -609,8 +644,10 @@ Thank you!`;
     });
 
     logoutBtn.addEventListener('click', () => {
-      sessionStorage.removeItem('shibaam_customer_jobno');
-      sessionStorage.removeItem('shibaam_customer_token');
+      ['shibaam_customer_jobno','shibaam_customer_token'].forEach(k => {
+        try { sessionStorage.removeItem(k); } catch (e) {}
+        try { localStorage.removeItem(k); } catch (e) {}
+      });
       loginCard.classList.remove('hidden');
       ordersCard.classList.add('hidden');
       jobNoInput.value = '';
