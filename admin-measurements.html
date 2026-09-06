@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Measurements</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+      --warn:#b3261e;
+      --good:#2a7d2a;
+      --amber:#9c7a1f;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1100px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
+
+    .btn-primary{
+      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-secondary{
+      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+    .btn-success{background:var(--good);color:#fff;}
+    .btn-success:hover{background:#236b23;}
+
+    .search-box{
+      display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;
+    }
+    .search-box input{
+      flex:1;min-width:200px;
+      border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:12px 16px;color:var(--ink);outline:none;font-size:14px;transition:.2s;
+    }
+    .search-box input:focus{border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);}
+
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{text-align:left;padding:12px 16px;border-bottom:2px solid var(--line);font-weight:700;color:var(--brown-dark);font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+    td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#faf8f5;}
+
+    .measure-name{font-weight:600;color:var(--ink);}
+    .measure-job{font-family:Georgia;font-size:12px;color:var(--brown-dark);}
+    .measure-date{font-size:12px;color:var(--muted);}
+    .measure-phone{font-size:12px;color:var(--muted);}
+
+    .drive-link{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 12px;border-radius:8px;
+      background:#f3e8de;color:var(--brown-dark);
+      font-size:12px;font-weight:600;text-decoration:none;
+      border:1px solid var(--line);transition:.2s;
+    }
+    .drive-link:hover{background:#e8dcc8;border-color:#d8c4b7;}
+    .drive-link svg{width:16px;height:16px;}
+    .drive-link.missing{background:#fef2f2;color:#b3261e;border-color:#fecaca;}
+
+    .tag{
+      display:inline-block;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;
+    }
+    .tag.linked{background:#e8f5e9;color:#2e7d32;}
+    .tag.pending{background:#fff3e0;color:#b36b00;}
+
+    .btn-icon{
+      width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--paper);
+      display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;margin-right:6px;
+    }
+    .btn-icon:hover{border-color:#d8c4b7;background:#f3e8de;}
+    .btn-icon svg{width:18px;height:18px;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:60px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+
+    .modal-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(48,37,31,.5);display:flex;align-items:center;justify-content:center;
+      padding:24px;z-index:1000;opacity:0;visibility:hidden;transition:.2s;
+    }
+    .modal-overlay.show{opacity:1;visibility:visible;}
+    .modal{
+      background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+      padding:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;
+      box-shadow:var(--shadow);transform:scale(.95);transition:.2s;
+    }
+    .modal-overlay.show .modal{transform:scale(1);}
+
+    .modal-header{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
+    }
+    .modal-header h2{font-family:Georgia;font-weight:500;font-size:20px;color:var(--brown-dark);margin:0;}
+    .modal-close{
+      width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--paper);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+    }
+    .modal-close:hover{border-color:#d8c4b7;background:#f3e8de;}
+    .modal-close svg{width:20px;height:20px;}
+
+    .form-group{margin-bottom:16px;}
+    .form-group label{
+      display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;
+    }
+    .form-group input,.form-group textarea,.form-group select{
+      width:100%;border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:14px 16px;color:var(--ink);outline:none;font-size:15px;transition:.2s;font-family:inherit;
+    }
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{
+      border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);
+    }
+    .form-group textarea{min-height:100px;resize:vertical;}
+
+    .modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);}
+
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    @media(max-width:600px){.form-row{grid-template-columns:1fr}}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.stats-grid{grid-template-columns:1fr}}
+    .stat-card{
+      background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;
+    }
+    .stat-value{font-family:Georgia;font-weight:600;font-size:28px;color:var(--brown-dark);margin-bottom:4px;}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    .hidden{display:none;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1100px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      th,td{padding:10px 12px;font-size:12px;}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./admin.html" aria-label="Back to Admin Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Admin Portal</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Records</div></div>
+        <div class="stat-card"><div class="stat-value" id="statLinked">0</div><div class="stat-label">With Drive Link</div></div>
+        <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">Pending Link</div></div>
+        <div class="stat-card"><div class="stat-value" id="statThisMonth">0</div><div class="stat-label">This Month</div></div>
+      </div>
+
+      <!-- Measurements Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h1>Measurements</h1>
+            <p>Manage customer measurement records with Google Drive links</p>
+          </div>
+          <button class="btn-primary" id="addMeasureBtn">Add Measurement</button>
+        </div>
+
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search by name, job no., phone, date...">
+          <select id="filterSelect">
+            <option value="">All</option>
+            <option value="linked">With Drive Link</option>
+            <option value="pending">Missing Link</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table id="measuresTable">
+            <thead>
+              <tr>
+                <th>Customer Name</th>
+                <th>Job No.</th>
+                <th>Phone</th>
+                <th>Date</th>
+                <th>Drive Link</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="measuresBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state hidden" id="emptyState">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 3h18v18H3z"/><path d="M12 3v18"/><path d="M3 12h18"/></svg></div>
+          <p>No measurement records found. Add your first record.</p>
+        </div>
+      </div>
+
+      <!-- Add/Edit Measurement Modal -->
+      <div class="modal-overlay hidden" id="measureModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 id="measureModalTitle">Add Measurement</h2>
+            <button class="modal-close" id="closeMeasureModal" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+
+          <form id="measureForm">
+            <input type="hidden" id="measureId">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Customer Name *</label>
+                <input type="text" id="mCustName" name="custName" placeholder="e.g. Ayesha Patel" required>
+              </div>
+              <div class="form-group">
+                <label>Phone *</label>
+                <input type="tel" id="mCustPhone" name="custPhone" placeholder="919876543210" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Job No. (optional)</label>
+                <input type="text" id="mJobNo" name="jobNo" placeholder="e.g. H4600">
+              </div>
+              <div class="form-group">
+                <label>Date *</label>
+                <input type="date" id="mDate" name="date" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Google Drive Link *</label>
+              <input type="url" id="mDriveLink" name="driveLink" placeholder="https://drive.google.com/file/d/FILE_ID/view?usp=sharing" required>
+              <p style="font-size:11px;color:var(--muted);margin-top:6px;">Paste the shareable Google Drive link (file or folder). Ensure "Anyone with link can view" is enabled.</p>
+            </div>
+
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea id="mNotes" name="notes" placeholder="Any additional notes about measurements..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" id="cancelMeasureBtn">Cancel</button>
+              <button type="submit" class="btn-primary">Save Measurement</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- View/Print Measurement Modal -->
+      <div class="modal-overlay hidden" id="viewMeasureModal">
+        <div class="modal" style="max-width:700px;">
+          <div class="modal-header">
+            <h2>Measurement Record</h2>
+            <button class="modal-close" id="closeViewMeasureModal" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+
+          <div id="viewMeasureContent">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <a class="back-link" href="./admin.html" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Admin Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data - in production, fetch from Apps Script backend
+    const DEFAULT_MEASUREMENTS = [
+      {
+        id: 'meas1',
+        custName: 'Ayesha Patel',
+        custPhone: '919876543210',
+        jobNo: 'H4600',
+        date: '2024-12-15',
+        driveLink: 'https://drive.google.com/file/d/1ABC123xyz/view?usp=sharing',
+        notes: 'Bridal lehenga measurements taken at store',
+        createdAt: '2024-12-15'
+      },
+      {
+        id: 'meas2',
+        custName: 'Rahul Sharma',
+        custPhone: '919876543211',
+        jobNo: 'H4601',
+        date: '2024-12-10',
+        driveLink: 'https://drive.google.com/folder/1FOLDER456/view?usp=sharing',
+        notes: 'Sherwani + churidar full measurement set',
+        createdAt: '2024-12-10'
+      },
+      {
+        id: 'meas3',
+        custName: 'Fatima Khan',
+        custPhone: '919876543212',
+        jobNo: 'H4602',
+        date: '2024-12-20',
+        driveLink: '',
+        notes: 'Awaiting customer to share Drive link',
+        createdAt: '2024-12-20'
+      },
+      {
+        id: 'meas4',
+        custName: 'Priya Desai',
+        custPhone: '919876543213',
+        jobNo: 'H4580',
+        date: '2024-11-28',
+        driveLink: 'https://drive.google.com/file/d/1XYZ789/view?usp=sharing',
+        notes: 'Anarkali suit measurements',
+        createdAt: '2024-11-28'
+      }
+    ];
+
+    function loadMeasurements() {
+      try {
+        const stored = localStorage.getItem('shibaam_measurements');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length) return parsed;
+        }
+      } catch (e) {}
+      return DEFAULT_MEASUREMENTS.slice();
+    }
+    function persistMeasurements() {
+      try { localStorage.setItem('shibaam_measurements', JSON.stringify(measurements)); } catch (e) {}
+    }
+    let measurements = loadMeasurements();
+
+    // DOM Elements
+    const measuresBody = document.getElementById('measuresBody');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const addMeasureBtn = document.getElementById('addMeasureBtn');
+    const measureModal = document.getElementById('measureModal');
+    const measureForm = document.getElementById('measureForm');
+    const measureModalTitle = document.getElementById('measureModalTitle');
+    const closeMeasureModal = document.getElementById('closeMeasureModal');
+    const cancelMeasureBtn = document.getElementById('cancelMeasureBtn');
+    const viewMeasureModal = document.getElementById('viewMeasureModal');
+    const viewMeasureContent = document.getElementById('viewMeasureContent');
+    const closeViewMeasureModal = document.getElementById('closeViewMeasureModal');
+
+    function backendCall(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
+    }
+    async function syncMeasurementsFromBackend() {
+      try {
+        if (!getAdminToken()) return;
+        const rows = await api('admin_list_measurements', { token: getAdminToken() });
+        if (Array.isArray(rows) && rows.length) {
+          measurements = rows;
+          persistMeasurements();
+          renderMeasures();
+          updateStats();
+        }
+      } catch (err) { console.warn('Backend sync failed, local only:', err); }
+    }
+
+    // Stats
+    function updateStats() {
+      const total = measurements.length;
+      const linked = measurements.filter(m => m.driveLink && m.driveLink.trim()).length;
+      const pending = total - linked;
+      const thisMonth = measurements.filter(m => {
+        const d = new Date(m.date);
+        const now = new Date();
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statLinked').textContent = linked;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statThisMonth').textContent = thisMonth;
+    }
+
+    // Render table
+    function renderMeasures() {
+      const search = searchInput.value.toLowerCase();
+      const filter = filterSelect.value;
+
+      let filtered = measurements.filter(m => {
+        const matchesSearch = m.custName.toLowerCase().includes(search) ||
+          m.jobNo.toLowerCase().includes(search) ||
+          m.custPhone.includes(search) ||
+          m.date.includes(search);
+        const matchesFilter = !filter ||
+          (filter === 'linked' && m.driveLink && m.driveLink.trim()) ||
+          (filter === 'pending' && (!m.driveLink || !m.driveLink.trim()));
+        return matchesSearch && matchesFilter;
+      });
+
+      if (filtered.length === 0) {
+        measuresBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      measuresBody.innerHTML = filtered.map(m => {
+        const hasLink = m.driveLink && m.driveLink.trim();
+        return `
+          <tr>
+            <td>
+              <div class="measure-name">${escapeHtml(m.custName)}</div>
+            </td>
+            <td>
+              <div class="measure-job">${escapeHtml(m.jobNo) || '—'}</div>
+            </td>
+            <td>
+              <div class="measure-phone">${formatPhone(m.custPhone)}</div>
+            </td>
+            <td>
+              <div class="measure-date">${formatDate(m.date)}</div>
+            </td>
+            <td>
+              ${hasLink ? `
+                <a href="${escapeHtml(m.driveLink)}" target="_blank" rel="noopener" class="drive-link">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Open Drive
+                </a>
+              ` : '<span style="color:var(--muted);font-size:12px;">No link</span>'}
+            </td>
+            <td>
+              <span class="tag ${hasLink ? 'linked' : 'pending'}">${hasLink ? 'Linked' : 'Pending'}</span>
+            </td>
+            <td>
+              <button class="btn-icon" onclick="viewMeasure('${m.id}')" title="View / Print"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></button>
+              <button class="btn-icon" onclick="editMeasure('${m.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="btn-icon" style="color:#b3261e;" onclick="deleteMeasure('${m.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Modal functions
+    function openMeasureModal(editMeasure = null) {
+      if (editMeasure) {
+        measureModalTitle.textContent = 'Edit Measurement';
+        document.getElementById('measureId').value = editMeasure.id;
+        document.getElementById('mCustName').value = editMeasure.custName;
+        document.getElementById('mCustPhone').value = editMeasure.custPhone;
+        document.getElementById('mJobNo').value = editMeasure.jobNo;
+        document.getElementById('mDate').value = editMeasure.date;
+        document.getElementById('mDriveLink').value = editMeasure.driveLink;
+        document.getElementById('mNotes').value = editMeasure.notes;
+      } else {
+        measureModalTitle.textContent = 'Add Measurement';
+        measureForm.reset();
+        document.getElementById('measureId').value = '';
+        document.getElementById('mDate').valueAsDate = new Date();
+      }
+      measureModal.classList.remove('hidden');
+      setTimeout(() => measureModal.classList.add('show'), 10);
+    }
+
+    function closeMeasureModalFn() {
+      measureModal.classList.remove('show');
+      setTimeout(() => measureModal.classList.add('hidden'), 200);
+    }
+
+    function openViewMeasureModal(measure) {
+      const hasLink = measure.driveLink && measure.driveLink.trim();
+
+      viewMeasureContent.innerHTML = `
+        <div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--line);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <div>
+              <div style="font-family:Georgia;font-weight:600;font-size:18px;color:var(--brown-dark);">${escapeHtml(measure.custName)}</div>
+              <div style="font-size:12px;color:var(--muted);">${escapeHtml(measure.custPhone)}</div>
+            </div>
+            <span class="tag ${hasLink ? 'linked' : 'pending'}">${hasLink ? 'Drive Linked' : 'Link Pending'}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted);">
+            <span>📋 Job No: ${escapeHtml(measure.jobNo) || '—'}</span>
+            <span>📅 Date: ${formatDate(measure.date)}</span>
+            <span>📝 Added: ${formatDate(measure.createdAt)}</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label style="display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;">Google Drive Link</label>
+          ${hasLink ? `
+            <a href="${escapeHtml(measure.driveLink)}" target="_blank" rel="noopener" class="drive-link" style="display:inline-flex;width:100%;justify-content:center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Open Drive Link
+            </a>
+          ` : `
+            <div style="padding:16px;background:#fef2f2;border:1px dashed #fecaca;border-radius:10px;color:#b3261e;text-align:center;">
+              No Drive link added yet.
+            </div>
+          `}
+        </div>
+
+        ${measure.notes ? `
+          <div style="margin-bottom:20px;">
+            <label style="display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;">Notes</label>
+            <div style="padding:12px 16px;background:#faf8f5;border:1px solid var(--line);border-radius:10px;color:var(--ink);white-space:pre-wrap;">${escapeHtml(measure.notes)}</div>
+          </div>
+        ` : ''}
+
+        <div class="modal-actions">
+          <button class="btn-success" onclick="printMeasure('${measure.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-right:6px;"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5"/><path d="M18 18h2a2 2 0 0 0 2-2v-5"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+            Save as PDF
+          </button>
+          <button class="btn-secondary" onclick="printMeasure('${measure.id}')">Print</button>
+        </div>
+      `;
+
+      viewMeasureModal.classList.remove('hidden');
+      setTimeout(() => viewMeasureModal.classList.add('show'), 10);
+    }
+
+    function closeViewMeasureModalFn() {
+      viewMeasureModal.classList.remove('show');
+      setTimeout(() => viewMeasureModal.classList.add('hidden'), 200);
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', renderMeasures);
+    filterSelect.addEventListener('change', renderMeasures);
+
+    addMeasureBtn.addEventListener('click', () => {
+      window.location.href = './admin-measurement-add.html';
+    });
+
+    closeMeasureModal.addEventListener('click', closeMeasureModalFn);
+    cancelMeasureBtn.addEventListener('click', closeMeasureModalFn);
+
+    closeViewMeasureModal.addEventListener('click', closeViewMeasureModalFn);
+
+    measureModal.addEventListener('click', (e) => {
+      if (e.target === measureModal) closeMeasureModalFn();
+    });
+
+    viewMeasureModal.addEventListener('click', (e) => {
+      if (e.target === viewMeasureModal) closeViewMeasureModalFn();
+    });
+
+    measureForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('measureId').value;
+      const measureData = {
+        custName: document.getElementById('mCustName').value.trim(),
+        custPhone: document.getElementById('mCustPhone').value.trim().replace(/\D/g, ''),
+        jobNo: document.getElementById('mJobNo').value.trim().toUpperCase(),
+        date: document.getElementById('mDate').value,
+        driveLink: document.getElementById('mDriveLink').value.trim(),
+        notes: document.getElementById('mNotes').value.trim()
+      };
+
+      if (id) {
+        const idx = measurements.findIndex(m => m.id === id);
+        if (idx !== -1) {
+          measurements[idx] = { ...measurements[idx], ...measureData };
+        }
+        backendCall('admin_update_measurement', { id, ...measureData });
+      } else {
+        const newMeasure = {
+          id: 'meas' + Date.now(),
+          ...measureData,
+          createdAt: new Date().toISOString().split('T')[0]
+        };
+        measurements.unshift(newMeasure);
+        backendCall('admin_create_measurement', { ...measureData });
+      }
+
+      persistMeasurements();
+      closeMeasureModalFn();
+      renderMeasures();
+      updateStats();
+    });
+
+    // Global functions for inline onclick
+    window.viewMeasure = function(id) {
+      const measure = measurements.find(m => m.id === id);
+      if (measure) openViewMeasureModal(measure);
+    };
+
+    window.editMeasure = function(id) {
+      window.location.href = './admin-measurement-add.html?id=' + encodeURIComponent(id);
+    };
+
+    window.deleteMeasure = function(id) {
+      if (!confirm('Delete this measurement record? This action cannot be undone.')) return;
+      measurements = measurements.filter(m => m.id !== id);
+      backendCall('admin_delete_measurement', { id });
+      persistMeasurements();
+      renderMeasures();
+      updateStats();
+    };
+
+    window.printMeasure = function(id) {
+      const measure = measurements.find(m => m.id === id);
+      if (!measure) return;
+      const hasLink = measure.driveLink && String(measure.driveLink).trim();
+
+      const printContent = `
+        <div style="font-family:Georgia,'Times New Roman',serif;max-width:700px;margin:0 auto;padding:20px;">
+          <div style="text-align:center;border-bottom:2px solid var(--brown-dark);padding-bottom:16px;margin-bottom:24px;">
+            <div style="font-size:24px;font-weight:700;color:var(--brown-dark);letter-spacing:1px;">SHIBAAM</div>
+            <div style="font-size:11px;color:var(--brown-soft);margin-top:4px;">Committed towards the Quality</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">Jamea Saifeeyah Road, Inderpura (Khadi Road), Zampa Bazar, Surat-3</div>
+          </div>
+
+          <div style="font-size:16px;font-weight:600;color:var(--brown-dark);margin-bottom:16px;text-align:center;">MEASUREMENT RECORD</div>
+
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
+            <tr><td style="padding:8px;border:1px solid var(--line);font-weight:600;color:var(--brown-dark);width:30%;">Customer Name</td><td style="padding:8px;border:1px solid var(--line);">${escapeHtml(measure.custName)}</td></tr>
+            <tr><td style="padding:8px;border:1px solid var(--line);font-weight:600;color:var(--brown-dark);">Phone</td><td style="padding:8px;border:1px solid var(--line);">${formatPhone(measure.custPhone)}</td></tr>
+            <tr><td style="padding:8px;border:1px solid var(--line);font-weight:600;color:var(--brown-dark);">Job No.</td><td style="padding:8px;border:1px solid var(--line);">${escapeHtml(measure.jobNo) || '—'}</td></tr>
+            <tr><td style="padding:8px;border:1px solid var(--line);font-weight:600;color:var(--brown-dark);">Date</td><td style="padding:8px;border:1px solid var(--line);">${formatDate(measure.date)}</td></tr>
+            <tr><td style="padding:8px;border:1px solid var(--line);font-weight:600;color:var(--brown-dark);">Drive Link</td><td style="padding:8px;border:1px solid var(--line);">${hasLink ? escapeHtml(measure.driveLink) : 'Not provided'}</td></tr>
+            <tr><td style="padding:8px;border:1px solid var(--line);font-weight:600;color:var(--brown-dark);vertical-align:top;">Notes</td><td style="padding:8px;border:1px solid var(--line);">${escapeHtml(measure.notes) || '—'}</td></tr>
+          </table>
+
+          <div style="text-align:center;color:var(--muted);font-size:11px;border-top:1px dashed var(--line);padding-top:16px;">
+            Generated on ${new Date().toLocaleDateString('en-IN')} · SHIBAAM Admin Portal
+          </div>
+        </div>
+      `;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html><head><title>Measurement - ${measure.custName}</title>
+        <style>@media print { .no-print { display:none; } } body { margin:0; }</style>
+        </head><body>${printContent}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();}}<\/script></body></html>
+      `);
+      printWindow.document.close();
+    };
+
+    // Helpers
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatPhone(phone) {
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length === 12 && cleaned.startsWith('91')) {
+        return `+91 ${cleaned.slice(2,7)} ${cleaned.slice(7)}`;
+      }
+      if (cleaned.length === 10) {
+        return `${cleaned.slice(0,5)} ${cleaned.slice(5)}`;
+      }
+      return phone;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    // Init: local first, then backend sync
+    renderMeasures();
+    updateStats();
+    syncMeasurementsFromBackend();
+  </script>
+</body>
+</html>

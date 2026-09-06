@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Portal</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:28px 0 18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:13px;
+    }
+
+    .brand-mark{
+      width:46px;
+      height:46px;
+      border:1.5px solid var(--brown);
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:var(--brown);
+      font-family:Georgia,serif;
+      font-size:20px;
+      letter-spacing:-1px;
+      background:rgba(255,253,249,.7);
+    }
+
+    .brand-name{
+      font-family:Georgia,"Times New Roman",serif;
+      font-size:24px;
+      letter-spacing:2px;
+      color:var(--brown-dark);
+    }
+
+
+    .brand-logo{width:58px;height:58px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-size:19px!important;letter-spacing:1px!important;line-height:1.2}
+    .brand-byline{font-size:10px;color:var(--brown-soft);letter-spacing:1.2px;margin-top:1px}
+    .brand-sub{letter-spacing:1px}
+    @media(max-width:520px){.brand-logo{width:46px;height:46px}.brand-name{font-size:14px!important;letter-spacing:.7px!important}.brand-byline{font-size:9px}.brand-sub{font-size:8px;letter-spacing:.7px}}
+    .brand-sub{
+      font-size:10px;
+      letter-spacing:2px;
+      color:var(--muted);
+      text-transform:uppercase;
+      margin-top:2px;
+    }
+
+    .secure{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .secure-dot{
+      width:7px;height:7px;border-radius:50%;
+      background:#5e8a69;
+      box-shadow:0 0 0 4px rgba(94,138,105,.12);
+    }
+
+    main{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:44px 0 70px;
+    }
+
+    .hero{
+      text-align:center;
+      max-width:720px;
+      margin:0 auto 42px;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:var(--brown);
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:2.5px;
+      text-transform:uppercase;
+      margin-bottom:16px;
+    }
+
+    .eyebrow:before,.eyebrow:after{
+      content:"";
+      width:28px;height:1px;background:#c9a494;
+    }
+
+    h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:clamp(38px,6vw,64px);
+      line-height:1.02;
+      letter-spacing:-1.8px;
+      color:var(--brown-dark);
+      margin:0 0 16px;
+    }
+
+    .hero p{
+      max-width:580px;
+      margin:auto;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:15px;
+    }
+
+    .portals{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      max-width:800px;
+      width:100%;
+      margin:auto;
+    }
+
+    .portal{
+      position:relative;
+      overflow:hidden;
+      background:rgba(255,253,249,.88);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:30px;
+      min-height:310px;
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+
+    .portal:before{
+      content:"";
+      position:absolute;
+      width:150px;height:150px;
+      border-radius:50%;
+      background:rgba(139,74,54,.055);
+      right:-65px;top:-65px;
+    }
+
+    .portal:hover{
+      transform:translateY(-6px);
+      box-shadow:var(--shadow);
+      border-color:#d8c4b7;
+    }
+
+    .icon{
+      width:52px;height:52px;
+      border-radius:16px;
+      background:#f3e8de;
+      color:var(--brown);
+      display:grid;
+      place-items:center;
+      margin-bottom:24px;
+      position:relative;
+    }
+
+    .icon svg{width:25px;height:25px}
+
+    .portal-tag{
+      color:var(--brown-soft);
+      text-transform:uppercase;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:1.7px;
+      margin-bottom:8px;
+    }
+
+    .portal h2{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:28px;
+      color:var(--brown-dark);
+      margin:0 0 9px;
+    }
+
+    .portal p{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.65;
+      margin:0;
+      max-width:280px;
+    }
+
+    .login-key{
+      margin-top:16px;
+      color:#76675f;
+      font-size:11px;
+    }
+
+    .login-key strong{color:var(--brown-dark)}
+
+    .enter{
+      margin-top:auto;
+      padding-top:25px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:var(--brown);
+      font-size:13px;
+      font-weight:750;
+    }
+
+    .arrow{
+      width:36px;height:36px;
+      border:1px solid #ddcabe;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      transition:.2s ease;
+    }
+
+    .portal:hover .arrow{
+      background:var(--brown);
+      color:white;
+      border-color:var(--brown);
+      transform:translateX(3px);
+    }
+
+    .help{
+      margin:30px auto 0;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .help a{
+      color:var(--brown);
+      font-weight:700;
+    }
+
+    footer{
+      border-top:1px solid rgba(190,165,148,.35);
+      padding:18px 0 25px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:#95877e;
+      font-size:10px;
+      letter-spacing:.5px;
+    }
+
+    .footer-brand{
+      color:var(--brown);
+      letter-spacing:1.5px;
+      font-weight:700;
+    }
+
+    @media(max-width:850px){
+      .portals{grid-template-columns:1fr}
+      .portal{min-height:230px;padding:25px}
+      .portal p{max-width:600px}
+      .hero{margin-bottom:28px}
+      main{padding-top:25px}
+    }
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      header{padding-top:20px}
+      .brand-name{font-size:20px}
+      .brand-mark{width:40px;height:40px;font-size:18px}
+      .secure{font-size:10px}
+      h1{font-size:42px}
+      .hero p{font-size:13px}
+      .portal{border-radius:20px}
+      footer{flex-direction:column;gap:8px;text-align:center}
+    }
+
+    .setup-wrap{max-width:1080px;width:100%;margin:34px auto 0;}
+    .setup-card{background:rgba(255,253,249,.92);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 10px 35px rgba(76,48,34,.055);}
+    .setup-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px;}
+    .setup-head h3{font-family:Georgia,serif;font-weight:500;color:var(--brown-dark);font-size:24px;margin:0 0 5px;}
+    .setup-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.55;}
+    .setup-badge{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;font-weight:800;color:#5e8a69;background:#edf5ee;border:1px solid #d4e6d7;padding:7px 10px;border-radius:999px;white-space:nowrap;}
+    .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+    .field{display:flex;flex-direction:column;gap:7px;}
+    .field.full{grid-column:1/-1;}
+    .field label{font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;}
+    .field input{width:100%;border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:12px 13px;color:var(--ink);outline:none;font-size:13px;transition:.2s;}
+    .field input:focus{border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);}
+    .setup-actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap;}
+    .setup-btn{border:0;border-radius:12x;padding:11px 16px;font-weight:800;font-size:12px;cursor:pointer;background:var(--brown);color:#fff;}
+    .setup-btn.secondary{background:#f2e8df;color:var(--brown-dark);}
+    .setup-status{font-size:11px;color:#5e8a69;min-height:16px;}
+    .setup-note{margin-top:14px;padding:11px 13px;background:#faf5ee;border:1px solid #eadfd3;border-radius:12px;color:#786b63;font-size:11px;line-height:1.55;}
+    @media(max-width:700px){.setup-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.setup-head{flex-direction:column}.setup-badge{align-self:flex-start}}
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./index.html" aria-label="SHIBAAM by Huzaifa Tarwala, Surat">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">by Huzaifa Tarwala</div>
+          <div class="brand-sub">Surat · Since 1990 · Committed towards the Quality</div>
+        </div>
+      </a>
+
+      <div class="secure">
+        <span class="secure-dot"></span>
+        Secure Portal
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Welcome</div>
+        <h1>SHIBAAM</h1>
+        <p>
+          One place to manage orders, track work and stay connected.
+          Choose the portal that belongs to you.
+        </p>
+      </section>
+
+      <section class="portals" aria-label="Choose portal">
+
+        <!-- CUSTOMER -->
+        <a class="portal" id="customerPortal" href="./customer.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M20 21a8 8 0 0 0-16 0"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+
+          <div class="portal-tag">For Customers</div>
+          <h2>My Order</h2>
+          <p>
+            View your job details, follow your order progress and stay connected with SHIBAAM.
+          </p>
+
+          <div class="login-key">
+            Login with <strong>Job No. / Key License</strong>
+          </div>
+
+          <div class="enter">
+            <span>View my order</span>
+            <span class="arrow">→</span>
+          </div>
+        </a>
+
+        <!-- ADMIN -->
+        <a class="portal" id="adminPortal" href="./admin-login.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M12 3l8 3v5c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-3z"/>
+              <path d="M9.5 12l1.7 1.7 3.6-4"/>
+            </svg>
+          </div>
+
+          <div class="portal-tag">For Administration</div>
+          <h2>Admin Panel</h2>
+          <p>
+            Manage jobs, customers, workers, assignments, queries, measurements and delivery.
+          </p>
+
+          <div class="login-key">
+            <strong>Authorized admin access</strong>
+          </div>
+
+          <div class="enter">
+            <span>Open admin panel</span>
+            <span class="arrow">→</span>
+          </div>
+        </a>
+
+      </section>
+
+      <div class="help">
+        Need help accessing your portal?
+        <a href="https://wa.me/919601879952" target="_blank" rel="noopener">
+          Contact SHIBAAM on WhatsApp
+        </a>
+      </div>
+    </main>
+
+    <footer>
+      <span class="footer-brand">SHIBAAM</span>
+      <span>by Huzaifa Tarwala · Since 1990 · Committed towards the Quality · Surat</span>
+    </footer>
+
+  </div>
+</body>
+</html>

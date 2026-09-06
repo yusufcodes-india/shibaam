@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Workers</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+      --good:#2a7d2a;
+      --amber:#9c7a1f;
+      --warn:#b3261e;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
+
+    .btn-primary{
+      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-secondary{
+      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+    .btn-success{background:var(--good);color:#fff;}
+    .btn-success:hover{background:#236b23;}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.stats-grid{grid-template-columns:1fr}}
+    .stat-card{
+      background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;
+    }
+    .stat-value{font-family:Georgia;font-weight:600;font-size:28px;color:var(--brown-dark);margin-bottom:4px;}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{background:var(--cream);color:var(--brown-dark);border:1px solid var(--line);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+    td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;}
+    tr:hover td{background:#faf8f5;}
+
+    .worker-name{font-weight:600;color:var(--ink);}
+    .worker-phone{font-size:12px;color:var(--muted);}
+    .worker-category{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:#f3e8de;color:var(--brown);}
+
+    .status-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    }
+    .status-badge.active{background:#e8f5e9;color:#2e7d32;}
+    .status-badge.inactive{background:#fef9e7;color:#9c7a1f;}
+
+    .btn-sm{
+      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
+    }
+    .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
+    .btn-sm.primary:hover{background:var(--brown-dark);}
+    .btn-sm.danger{background:#fef2f2;border-color:#fecaca;color:#b3261e;}
+    .btn-sm.danger:hover{background:#fee2e2;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:40px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+
+    .modal-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(48,37,31,.5);display:flex;align-items:center;justify-content:center;
+      padding:24px;z-index:1000;opacity:0;visibility:hidden;transition:.2s;
+    }
+    .modal-overlay.show{opacity:1;visibility:visible;}
+    .modal{
+      background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+      padding:28px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;
+      box-shadow:var(--shadow);transform:scale(.95);transition:.2s;
+    }
+    .modal-overlay.show .modal{transform:scale(1);}
+
+    .modal-header{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
+    }
+    .modal-header h2{font-family:Georgia;font-weight:500;font-size:20px;color:var(--brown-dark);margin:0;}
+    .modal-close{
+      width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--paper);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+    }
+    .modal-close:hover{border-color:#d8c4b7;background:#f3e8de;}
+    .modal-close svg{width:20px;height:20px;}
+
+    .form-group{margin-bottom:16px;}
+    .form-group label{
+      display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;
+    }
+    .form-group input,.form-group select{
+      width:100%;border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:14px 16px;color:var(--ink);outline:none;font-size:15px;transition:.2s;font-family:inherit;
+    }
+    .form-group input:focus,.form-group select:focus{
+      border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);
+    }
+
+    .modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      th,td{padding:10px 12px;font-size:12px;}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./admin.html" aria-label="Back to Admin Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Admin Portal</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-value" id="statTotalWorkers">0</div><div class="stat-label">Total Workers</div></div>
+        <div class="stat-card"><div class="stat-value" id="statActiveWorkers">0</div><div class="stat-label">Active</div></div>
+        <div class="stat-card"><div class="stat-value" id="statWorkWorkers">0</div><div class="stat-label">Work Category</div></div>
+        <div class="stat-card"><div class="stat-value" id="statStitchWorkers">0</div><div class="stat-label">Stitching Category</div></div>
+      </div>
+
+      <!-- Workers Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h1>Workers</h1>
+            <p>Manage worker profiles, categories, and availability</p>
+          </div>
+          <button class="btn-primary" id="addWorkerBtn">Add Worker</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="workersTable">
+            <thead>
+              <tr>
+                <th style="width:180px;">Name</th>
+                <th style="width:140px;">Phone</th>
+                <th style="width:140px;">Category</th>
+                <th style="width:120px;">Status</th>
+                <th style="width:200px;">Assigned Jobs</th>
+                <th style="width:180px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="workersBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 4l6 6"/><path d="M16 2l6 6"/><path d="M4 20l7-7"/><path d="M3 21l3-1 13-13-3-3L3 17l-1 3 1 1z"/></svg></div>
+          <p>No workers added yet. Click <strong>Add Worker</strong> to start.</p>
+        </div>
+      </div>
+
+      <!-- Add/Edit Worker Modal -->
+      <div class="modal-overlay hidden" id="workerModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 id="workerModalTitle">Add Worker</h2>
+            <button class="modal-close" id="closeWorkerModal" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+
+          <form id="workerForm">
+            <input type="hidden" id="workerId">
+
+            <div class="form-group">
+              <label>Name *</label>
+              <input type="text" id="wName" name="name" placeholder="e.g. Mohammed Ali" required>
+            </div>
+
+            <div class="form-group">
+              <label>Phone (WhatsApp) *</label>
+              <input type="tel" id="wPhone" name="phone" placeholder="919876543210" required>
+            </div>
+
+            <div class="form-group">
+              <label>Category *</label>
+              <select id="wCategory" name="category" required>
+                <option value="">Select category</option>
+                <option value="GENTS_WORK">Gents Work</option>
+                <option value="STITCHING">Stitching</option>
+                <option value="LADIES">Ladies</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Status</label>
+              <select id="wStatus" name="status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" id="cancelWorkerBtn">Cancel</button>
+              <button type="submit" class="btn-primary">Save Worker</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <a class="back-link" href="./admin.html" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Admin Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data
+    const DEFAULT_WORKERS = [
+      { id: 'w1', name: 'Huzaifa Tarwala', phone: '919601879952', category: 'GENTS_WORK', status: 'active', assignedJobs: 3 },
+      { id: 'w2', name: 'Ahmed Raza', phone: '919876543211', category: 'LADIES', status: 'active', assignedJobs: 2 },
+      { id: 'w3', name: 'Fatima Sheikh', phone: '919876543212', category: 'LADIES', status: 'active', assignedJobs: 1 },
+      { id: 'w4', name: 'Mohammed Ali', phone: '919876543213', category: 'GENTS_WORK', status: 'active', assignedJobs: 2 },
+      { id: 'w5', name: 'Sana Khan', phone: '919876543214', category: 'STITCHING', status: 'inactive', assignedJobs: 0 }
+    ];
+    function loadWorkers() {
+      try {
+        const stored = localStorage.getItem('shibaam_workers');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+      return DEFAULT_WORKERS.slice();
+    }
+    function persistWorkers() {
+      try { localStorage.setItem('shibaam_workers', JSON.stringify(workersData)); } catch (e) {}
+    }
+    let workersData = loadWorkers();
+
+    // DOM Elements
+    const workersBody = document.getElementById('workersBody');
+    const emptyState = document.getElementById('emptyState');
+    const addWorkerBtn = document.getElementById('addWorkerBtn');
+    const workerModal = document.getElementById('workerModal');
+    const workerForm = document.getElementById('workerForm');
+    const workerModalTitle = document.getElementById('workerModalTitle');
+    const closeWorkerModal = document.getElementById('closeWorkerModal');
+    const cancelWorkerBtn = document.getElementById('cancelWorkerBtn');
+
+
+    function toast(msg, ok) {
+      let t = document.getElementById('appToast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'appToast';
+        t.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:1000;max-width:320px;background:#30251f;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;box-shadow:0 24px 70px rgba(76,48,34,.12);transition:opacity .3s;';
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.background = ok ? '#2a7d2a' : '#b3261e';
+      t.style.opacity = '1';
+      clearTimeout(t._h);
+      t._h = setTimeout(() => { t.style.opacity = '0'; }, 3500);
+    }
+    async function backendSave(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      try {
+        const d = await api(action, payload);
+        toast('Saved to Sheets', true);
+        return { ok: true, data: d };
+      } catch (err) {
+        toast('Save failed (' + err.message + ') — change reverted', false);
+        return { ok: false, error: err };
+      }
+    }
+
+    function backendCall(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
+    }
+    async function syncWorkersFromBackend() {
+      try {
+        if (!getAdminToken()) return;
+        const rows = await api('admin_list_workers', { token: getAdminToken() });
+        if (Array.isArray(rows) && rows.length) {
+          const keepCounts = {};
+          workersData.forEach(w => { keepCounts[w.name] = w.assignedJobs; });
+          workersData = rows.map(w => ({ ...w, assignedJobs: w.assignedJobs || 0 }));
+          persistWorkers();
+          recomputeAssignedJobs();
+          renderWorkers();
+          updateStats();
+        }
+      } catch (err) { console.warn('Backend sync failed, local only:', err); }
+    }
+
+    // Stats
+    function updateStats() {
+      const total = workersData.length;
+      const active = workersData.filter(w => w.status === 'active').length;
+      const work = workersData.filter(w => w.category === 'GENTS_WORK').length;
+      const stitch = workersData.filter(w => w.category === 'STITCHING').length;
+
+      document.getElementById('statTotalWorkers').textContent = total;
+      document.getElementById('statActiveWorkers').textContent = active;
+      document.getElementById('statWorkWorkers').textContent = work;
+      document.getElementById('statStitchWorkers').textContent = stitch;
+    }
+
+    function getCategoryLabel(cat) {
+      const map = {
+        'GENTS_WORK': 'Gents Work',
+        'STITCHING': 'Stitching',
+        'LADIES': 'Ladies'
+      };
+      return map[cat] || cat;
+    }
+
+    function getCategoryColor(cat) {
+      const map = {
+        'GENTS_WORK': '#1565c0',
+        'STITCHING': '#b36b00',
+        'LADIES': '#2e7d32'
+      };
+      return map[cat] || '#7d7068';
+    }
+
+    function formatPhone(phone) {
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length === 12 && cleaned.startsWith('91')) {
+        return `+91 ${cleaned.slice(2,7)} ${cleaned.slice(7)}`;
+      }
+      if (cleaned.length === 10) {
+        return `${cleaned.slice(0,5)} ${cleaned.slice(5)}`;
+      }
+      return phone;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    function renderWorkers() {
+      if (workersData.length === 0) {
+        workersBody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+      workersBody.innerHTML = workersData.map(w => `
+        <tr>
+          <td>
+            <div class="worker-name">${escapeHtml(w.name)}</div>
+          </td>
+          <td>
+            <div class="worker-phone">${formatPhone(w.phone)}</div>
+          </td>
+          <td>
+            <span class="worker-category" style="background:#f3e8de;color:${getCategoryColor(w.category)};">${getCategoryLabel(w.category)}</span>
+          </td>
+          <td>
+            <span class="status-badge ${w.status}">${w.status.charAt(0).toUpperCase() + w.status.slice(1)}</span>
+          </td>
+          <td>${w.assignedJobs} job${w.assignedJobs !== 1 ? 's' : ''}</td>
+          <td>
+            <button class="btn-sm primary" onclick="editWorker('${w.id}')" title="Edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="btn-sm ${w.status === 'active' ? 'danger' : 'success'}" onclick="toggleWorkerStatus('${w.id}')" title="${w.status === 'active' ? 'Deactivate' : 'Activate'}">
+              ${w.status === 'active' ? 'Deactivate' : 'Activate'}
+            </button>
+            <button class="btn-sm danger" onclick="deleteWorker('${w.id}')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Modal functions
+    function openWorkerModal(editWorker = null) {
+      if (editWorker) {
+        workerModalTitle.textContent = 'Edit Worker';
+        document.getElementById('workerId').value = editWorker.id;
+        document.getElementById('wName').value = editWorker.name;
+        document.getElementById('wPhone').value = editWorker.phone;
+        document.getElementById('wCategory').value = editWorker.category;
+        document.getElementById('wStatus').value = editWorker.status;
+      } else {
+        workerModalTitle.textContent = 'Add Worker';
+        workerForm.reset();
+        document.getElementById('workerId').value = '';
+        document.getElementById('wStatus').value = 'active';
+      }
+      workerModal.classList.remove('hidden');
+      setTimeout(() => workerModal.classList.add('show'), 10);
+    }
+
+    function closeWorkerModalFn() {
+      workerModal.classList.remove('show');
+      setTimeout(() => workerModal.classList.add('hidden'), 200);
+    }
+
+    // Event listeners
+    addWorkerBtn.addEventListener('click', () => openWorkerModal());
+
+    closeWorkerModal.addEventListener('click', closeWorkerModalFn);
+    cancelWorkerBtn.addEventListener('click', closeWorkerModalFn);
+
+    workerModal.addEventListener('click', (e) => {
+      if (e.target === workerModal) closeWorkerModalFn();
+    });
+
+    workerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('workerId').value;
+      const workerData = {
+        name: document.getElementById('wName').value.trim(),
+        phone: document.getElementById('wPhone').value.trim().replace(/\D/g, ''),
+        category: document.getElementById('wCategory').value,
+        status: document.getElementById('wStatus').value
+      };
+
+      const snap = JSON.stringify(workersData);
+      let res;
+      if (id) {
+        const idx = workersData.findIndex(w => w.id === id);
+        if (idx !== -1) {
+          workersData[idx] = { ...workersData[idx], ...workerData };
+        }
+        res = await backendSave('admin_update_worker', { id, ...workerData });
+      } else {
+        const newWorker = {
+          id: 'w' + Date.now(),
+          ...workerData,
+          assignedJobs: 0
+        };
+        workersData.unshift(newWorker);
+        res = await backendSave('admin_create_worker', { ...workerData });
+      }
+
+      if (!res.ok) {
+        workersData = JSON.parse(snap);
+        syncWorkersFromBackend();
+      }
+      persistWorkers();
+      closeWorkerModalFn();
+      renderWorkers();
+      updateStats();
+    });
+
+    // Global functions
+    window.editWorker = function(id) {
+      const worker = workersData.find(w => w.id === id);
+      if (worker) openWorkerModal(worker);
+    };
+
+    window.toggleWorkerStatus = async function(id) {
+      const worker = workersData.find(w => w.id === id);
+      if (!worker) return;
+      const snap = JSON.stringify(workersData);
+      worker.status = worker.status === 'active' ? 'inactive' : 'active';
+      const res = await backendSave('admin_toggle_worker', { id, status: worker.status });
+      if (!res.ok) {
+        workersData = JSON.parse(snap);
+        syncWorkersFromBackend();
+      }
+      persistWorkers();
+      renderWorkers();
+      updateStats();
+    };
+
+    window.deleteWorker = async function(id) {
+      if (!confirm('Delete this worker? This action cannot be undone.')) return;
+      const snap = JSON.stringify(workersData);
+      const res = await backendSave('admin_delete_worker', { id });
+      if (!res.ok) {
+        workersData = JSON.parse(snap);
+        syncWorkersFromBackend();
+      } else {
+        workersData = workersData.filter(w => w.id !== id);
+      }
+      persistWorkers();
+      renderWorkers();
+      updateStats();
+    };
+
+    // Recompute assignedJobs from shibaam_jobs (source of truth)
+    function recomputeAssignedJobs() {
+      let jobs = [];
+      try {
+        const stored = JSON.parse(localStorage.getItem('shibaam_jobs') || '[]');
+        if (Array.isArray(stored)) jobs = stored;
+      } catch (e) {}
+      workersData.forEach(w => {
+        let count = 0;
+        jobs.forEach(j => {
+          (j.particulars || []).forEach(p => {
+            if (p.worker === w.name && p.status !== 'COMPLETED') count++;
+            if (p.stitchWorker === w.name && p.status !== 'COMPLETED') count++;
+          });
+        });
+        w.assignedJobs = count;
+      });
+    }
+
+    // Init: local first, then backend sync
+    recomputeAssignedJobs();
+    renderWorkers();
+    updateStats();
+    syncWorkersFromBackend();
+
+    // Sync when jobs change (cross-tab); same-tab callers re-render directly
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'shibaam_jobs') {
+        recomputeAssignedJobs();
+        renderWorkers();
+        updateStats();
+      }
+    });
+  </script>
+</body>
+</html>

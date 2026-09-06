@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Add Measurement</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+      --good:#2a7d2a;
+      --warn:#b3261e;
+      --info:#1565c0;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(900px, calc(100% - 24px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      padding:16px 0 8px;
+    }
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    .header-title{
+      flex:1;
+      text-align:center;
+    }
+    .header-title h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:20px;
+      color:var(--brown-dark);
+      margin:0 0 2px;
+    }
+    .header-title p{
+      font-size:10px;color:var(--brown-soft);letter-spacing:1px;text-transform:uppercase;margin:0;
+    }
+
+    .header-brand{
+      display:flex;align-items:center;gap:8px;
+    }
+    .header-brand .logo{width:32px;height:32px;object-fit:contain;}
+    .header-brand .name{font-family:Georgia,"Times New Roman",serif;font-size:13px;letter-spacing:1px;color:var(--brown-dark);}
+
+    main{flex:1;display:flex;flex-direction:column;padding:0 0 16px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      overflow:hidden;
+    }
+
+    .card-body{
+      padding:20px;
+    }
+
+    .section{
+      margin-bottom:20px;
+    }
+    .section:last-of-type{margin-bottom:0;}
+
+    .section-title{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:15px;
+      color:var(--brown-dark);
+      margin:0 0 12px;
+      padding-bottom:6px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px 20px;
+    }
+    @media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+
+    .form-group{margin-bottom:12px;}
+    .form-group.full{grid-column:1/-1;}
+    .form-group label{
+      display:block;font-size:11px;font-weight:600;color:var(--brown-dark);
+      margin-bottom:4px;
+    }
+    .form-group label .required{color:#b3261e;margin-left:2px;}
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select{
+      width:100%;
+      border:none;
+      border-bottom:1px dotted var(--line);
+      background:transparent;
+      font-family:inherit;
+      font-size:12px;
+      padding:3px 2px;
+      outline:none;
+      transition:border-color .2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus{
+      border-bottom:1px solid var(--brown);
+    }
+    .form-group input:read-only,
+    .form-group input[readonly]{
+      background:#f5f5f5;
+      color:var(--muted);
+      cursor:not-allowed;
+    }
+    .form-group textarea{
+      min-height:70px;
+      resize:vertical;
+      border:1px solid #c9bfae;
+      border-radius:6px;
+      padding:8px 10px;
+    }
+    .form-group textarea:focus{border-color:var(--brown);}
+    .form-group .helper{
+      font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4;
+    }
+
+    /* Measurement grid - 2 columns, all inputs with dotted bottom border */
+    .measure-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:6px 24px;
+      align-items:start;
+    }
+    @media(max-width:600px){.measure-grid{grid-template-columns:1fr;gap:6px 12px;}}
+
+    .measure-col{display:flex;flex-direction:column;gap:6px;}
+    .measure-col label{
+      display:block;font-size:11px;color:var(--brown-dark);font-weight:600;margin-bottom:1px;
+    }
+    .measure-col input{
+      width:100%;
+      border:none;
+      border-bottom:1px dotted var(--line);
+      background:transparent;
+      font-family:inherit;
+      font-size:12px;
+      padding:2px 2px;
+      outline:none;
+      transition:border-color .2s;
+    }
+    .measure-col input:focus{
+      border-bottom:1px solid var(--brown);
+    }
+
+    /* Address textarea - different style */
+    .form-group textarea.address-input{
+      border:none;
+      border-bottom:1px solid var(--line);
+      border-radius:0;
+      padding:2px 2px;
+      min-height:44px;
+    }
+    .form-group textarea.address-input:focus{
+      border-bottom:1.5px solid var(--brown);
+    }
+
+    /* Drive Link Helper Buttons */
+    .drive-helper{
+      display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;
+    }
+    .btn-sm{
+      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
+    }
+    .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
+    .btn-sm.primary:hover{background:var(--brown-dark);}
+    .btn-sm.success{background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32;}
+    .btn-sm.success:hover{background:#c8e6c9;}
+    .btn-sm.info{background:#e3f2fd;border-color:#64b5f6;color:#1565c0;}
+    .btn-sm.info:hover{background:#bbdefb;}
+    .btn-sm:disabled{opacity:.6;cursor:not-allowed;}
+
+    /* Sticky Save Bar */
+    .save-bar{
+      position:sticky;bottom:0;
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      padding:16px 20px;
+      border-top:1px solid var(--line);
+      background:var(--paper);
+      flex-wrap:wrap;
+    }
+    @media(max-width:520px){
+      .save-bar{flex-direction:column-reverse;padding:12px 16px;}
+      .save-bar .btn{width:100%;}
+    }
+
+    .btn{
+      border:0;border-radius:10px;padding:10px 20px;font-weight:800;font-size:12px;cursor:pointer;transition:.2s;
+      white-space:nowrap;
+    }
+    .btn-primary{background:var(--brown);color:#fff;}
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+    .btn-secondary{border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);}
+    .btn-secondary:hover{background:#e8ddd0;}
+    .btn-success{background:var(--good);color:#fff;}
+    .btn-success:hover{background:#236b23;}
+
+    .toast{
+      position:fixed;bottom:20px;right:20px;z-index:1000;
+      background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;
+      box-shadow:var(--shadow);transform:translateY(100px);opacity:0;transition:.3s;
+      max-width:300px;font-size:13px;
+    }
+    .toast.show{transform:translateY(0);opacity:1;}
+    .toast.success{background:var(--good);}
+    .toast.error{background:#b3261e;}
+
+    .error-state{
+      background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;
+      padding:8px 12px;border-radius:8px;font-size:11px;margin-bottom:10px;display:none;
+    }
+    .error-state.show{display:block;}
+
+    /* A5 Print Styles */
+    @media print {
+      @page { size: A5; margin: 10mm; }
+      body { background: #fff !important; }
+      .page { width: 100%; max-width: none; min-height: auto; }
+      header, .save-bar, .drive-helper, .toast, .error-state { display: none !important; }
+      .card { border: none; box-shadow: none; border-radius: 0; }
+      .card-body { padding: 0; }
+      .section { margin-bottom: 12px; page-break-inside: avoid; }
+      .section-title { font-size: 12px; margin-bottom: 8px; padding-bottom: 4px; }
+      .form-grid { gap: 8px 16px; }
+      .form-group { margin-bottom: 8px; }
+      .form-group label { font-size: 10px; margin-bottom: 2px; }
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        border: none !important;
+        border-bottom: 1px solid #333 !important;
+        background: transparent !important;
+        font-size: 11px !important;
+        padding: 1px 1px !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .form-group textarea {
+        border: 1px solid #333 !important;
+        border-radius: 2px !important;
+        min-height: auto !important;
+        height: auto !important;
+      }
+      .measure-grid { gap: 4px 16px; }
+      .measure-col label { font-size: 10px; margin-bottom: 1px; }
+      .measure-col input { font-size: 11px; padding: 1px 1px; }
+      .form-group .helper { display: none; }
+    }
+
+    @media(max-width:520px){
+      .page{width:min(100% - 16px,900px)}
+      .card{border-radius:20px}
+      .card-body{padding:16px}
+      .header-title h1{font-size:16px}
+      .header-brand .name{display:none}
+      .form-group input,.form-group select{font-size:11px}
+      .measure-col input{font-size:11px}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="back-link" href="./admin-measurements.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Measurements
+      </a>
+
+      <div class="header-title">
+        <h1>Add Measurement</h1>
+        <p>SHIBAAM</p>
+      </div>
+
+      <div class="header-brand">
+        <img class="logo" src="./logo.png" alt="SHIBAAM">
+        <span class="name">SHIBAAM</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="card-body">
+          <form id="measureForm" novalidate>
+
+            <!-- Error Toast Container -->
+            <div class="error-state" id="formError" role="alert"></div>
+
+            <!-- 1. Customer Info -->
+            <div class="section">
+              <h2 class="section-title">Customer Info</h2>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Name <span class="required">*</span></label>
+                  <input type="text" id="custName" name="custName" placeholder="e.g. Ayesha Patel" required autocomplete="name">
+                </div>
+                <div class="form-group">
+                  <label>Phone <span class="required">*</span></label>
+                  <input type="tel" id="custPhone" name="custPhone" placeholder="919876543210" required autocomplete="tel">
+                </div>
+                <div class="form-group">
+                  <label>Job No.</label>
+                  <input type="text" id="jobNo" name="jobNo" placeholder="e.g. H4600" autocomplete="off">
+                </div>
+                <div class="form-group">
+                  <label>Date <span class="required">*</span></label>
+                  <input type="date" id="measureDate" name="measureDate" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Address -->
+            <div class="section">
+              <h2 class="section-title">Address</h2>
+              <div class="form-group full">
+                <label>Address</label>
+                <textarea class="address-input" id="address" name="address" rows="2" placeholder="Full delivery address"></textarea>
+              </div>
+            </div>
+
+            <!-- 3. Google Drive Link (Auto-generated) -->
+            <div class="section">
+              <h2 class="section-title">Google Drive Link</h2>
+              <div class="form-group full">
+                <label>Drive Folder Link <span class="required">*</span></label>
+                <input type="url" id="driveLink" name="driveLink" placeholder="Drive folder will be created automatically when you save" readonly>
+                <p class="helper">Drive folder will be created automatically when you save. Click "Create Drive Folder Now" to pre-create it.</p>
+              </div>
+              <div class="drive-helper">
+                <button type="button" class="btn-sm info" onclick="openDriveHelper()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  How to get Drive link
+                </button>
+                <button type="button" class="btn-sm primary" id="createFolderBtn" onclick="createDriveFolder()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                  Create Drive Folder Now
+                </button>
+              </div>
+            </div>
+
+            <!-- 4. Measurements -->
+            <div class="section">
+              <h2 class="section-title">Measurements (all in inches/cm)</h2>
+              <div class="measure-grid">
+                <!-- Left Column -->
+                <div class="measure-col">
+                  <label>Shoulder</label><input type="text" id="shoulder" name="shoulder" placeholder="—">
+                  <label>Sleeve Length</label><input type="text" id="sleeveLength" name="sleeveLength" placeholder="—">
+                  <label>Chest</label><input type="text" id="chest" name="chest" placeholder="—">
+                  <label>Belly</label><input type="text" id="belly" name="belly" placeholder="—">
+                  <label>Around Waist</label><input type="text" id="aroundWaist" name="aroundWaist" placeholder="—">
+                  <label>Hips</label><input type="text" id="hips" name="hips" placeholder="—">
+                  <label>Thighs</label><input type="text" id="thighs" name="thighs" placeholder="—">
+                  <label>Knee</label><input type="text" id="knee" name="knee" placeholder="—">
+                </div>
+
+                <!-- Right Column -->
+                <div class="measure-col">
+                  <label>Kurta Length</label><input type="text" id="kurtaLength" name="kurtaLength" placeholder="—">
+                  <label>Ezar Length</label><input type="text" id="ezzarLength" name="ezzarLength" placeholder="—">
+                  <label>Ankle</label><input type="text" id="ankle" name="ankle" placeholder="—">
+                  <label>Around Neck</label><input type="text" id="aroundNeck" name="aroundNeck" placeholder="—">
+                  <label>Armhole</label><input type="text" id="armhole" name="armhole" placeholder="—">
+                  <label>Biceps</label><input type="text" id="biceps" name="biceps" placeholder="—">
+                  <label>Forearm</label><input type="text" id="forearm" name="forearm" placeholder="—">
+                  <label>Around Wrist</label><input type="text" id="aroundWrist" name="aroundWrist" placeholder="—">
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Others -->
+            <div class="section">
+              <h2 class="section-title">Others</h2>
+              <div class="form-group full">
+                <label>Additional Notes</label>
+                <textarea id="others" name="others" placeholder="Any extra notes, style preferences, special instructions..."></textarea>
+              </div>
+            </div>
+
+          </form>
+
+          <!-- Sticky Save Bar -->
+          <div class="save-bar">
+            <a href="./admin-measurements.html" class="btn btn-secondary">Cancel</a>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-secondary" onclick="printMeasurement()">Print</button>
+              <button type="button" class="btn btn-success" onclick="saveAsPDF()">Save as PDF</button>
+              <button type="submit" form="measureForm" class="btn btn-primary" id="saveBtn">Save & Create Drive Link</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // ⚠️ CONFIG: Replace with your deployed Google Apps Script Web App URL
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+
+    // Measurement field IDs (matching shibaam.html structure)
+    const MEASUREMENT_FIELDS = [
+      'shoulder', 'aroundNeck', 'sleeveLength', 'armhole',
+      'chest', 'biceps', 'belly', 'aroundWrist',
+      'aroundWaist', 'forearm', 'hips', 'thighs',
+      'ezzarLength', 'knee', 'kurtaLength', 'ankle'
+    ];
+
+    const form = document.getElementById('measureForm');
+    const saveBtn = document.getElementById('saveBtn');
+    const createFolderBtn = document.getElementById('createFolderBtn');
+    const formError = document.getElementById('formError');
+    const toast = document.getElementById('toast');
+    const driveLinkInput = document.getElementById('driveLink');
+
+    // Set today's date as default
+    document.getElementById('measureDate').valueAsDate = new Date();
+
+    // Auto-format phone input
+    const phoneInput = document.getElementById('custPhone');
+    phoneInput.addEventListener('input', (e) => {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 12) value = value.slice(0, 12);
+      e.target.value = value;
+    });
+
+    // Auto-uppercase Job No.
+    const jobNoInput = document.getElementById('jobNo');
+    jobNoInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+
+    // Form validation
+    function validateForm(driveRequired) {
+      const errors = [];
+
+      const name = document.getElementById('custName').value.trim();
+      if (!name) errors.push('Customer name is required');
+
+      const phone = document.getElementById('custPhone').value.replace(/\D/g, '');
+      if (!phone) errors.push('Phone number is required');
+      else if (phone.length < 10) errors.push('Phone number must be at least 10 digits');
+
+      const date = document.getElementById('measureDate').value;
+      if (!date) errors.push('Date is required');
+
+      // Drive link required only when backend cannot auto-create it
+      if (driveRequired) {
+        const driveLink = driveLinkInput.value.trim();
+        if (!driveLink) errors.push('Google Drive link is required (click "Create Drive Folder Now" or save to auto-create)');
+        else if (!driveLink.includes('drive.google.com')) errors.push('Drive link must be a valid Google Drive URL');
+      }
+
+      return errors;
+    }
+
+    // Show error
+    function showError(message) {
+      formError.textContent = message;
+      formError.classList.add('show');
+      formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function clearError() {
+      formError.classList.remove('show');
+    }
+
+    // Show toast
+    function showToast(message, isSuccess = false, isError = false) {
+      toast.textContent = message;
+      toast.className = 'toast';
+      if (isSuccess) toast.classList.add('success');
+      if (isError) toast.classList.add('error');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 5000);
+    }
+
+    // Collect all form data
+    function collectFormData() {
+      const data = {
+        // Customer info
+        custName: document.getElementById('custName').value.trim(),
+        custPhone: document.getElementById('custPhone').value.trim().replace(/\D/g, ''),
+        jobNo: document.getElementById('jobNo').value.trim().toUpperCase(),
+        date: document.getElementById('measureDate').value,
+        address: document.getElementById('address').value.trim(),
+        driveLink: driveLinkInput.value.trim(),
+        others: document.getElementById('others').value.trim(),
+        // Measurements
+      };
+
+      MEASUREMENT_FIELDS.forEach(field => {
+        data[field] = document.getElementById(field).value.trim();
+      });
+
+      return data;
+    }
+
+    // Backend contract (Code.gs): admin_create_drive_folder / admin_create_measurement
+    function getAdminToken() {
+      try { return sessionStorage.getItem('shibaam_admin_token') || ''; }
+      catch (e) { return ''; }
+    }
+
+    // Call Apps Script: Create Drive Folder
+    async function createDriveFolderViaAppsScript(custName, jobNo, date) {
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'admin_create_drive_folder',
+          token: getAdminToken(),
+          custName,
+          jobNo: jobNo || 'NEW',
+          date
+        })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || 'Failed to create Drive folder');
+      return result.data; // { folderUrl, folderId }
+    }
+
+    // Call Apps Script: Save Measurement
+    async function saveMeasurementViaAppsScript(data) {
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'admin_create_measurement',
+          token: getAdminToken(),
+          ...data
+        })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || 'Failed to save measurement');
+      return result.data;
+    }
+
+    // Create Drive Folder (pre-create or during save)
+    async function createDriveFolder() {
+      const custName = document.getElementById('custName').value.trim();
+      const jobNo = document.getElementById('jobNo').value.trim().toUpperCase();
+      const date = document.getElementById('measureDate').value;
+
+      if (!custName) {
+        showError('Please enter customer name first');
+        return;
+      }
+      if (!date) {
+        showError('Please select date first');
+        return;
+      }
+
+      createFolderBtn.disabled = true;
+      createFolderBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"/></svg>
+        Creating...
+      `;
+
+      try {
+        const result = await createDriveFolderViaAppsScript(custName, jobNo || 'NEW', date || new Date().toISOString().split('T')[0]);
+        driveLinkInput.value = result.folderUrl;
+        driveLinkInput.dataset.folderId = result.folderId || '';
+        driveLinkInput.removeAttribute('readonly');
+        driveLinkInput.style.background = '';
+        driveLinkInput.style.color = '';
+        driveLinkInput.style.cursor = '';
+        showToast('Drive folder created: ' + result.folderUrl, true);
+      } catch (err) {
+        showToast('Failed to create Drive folder: ' + err.message, false, true);
+        console.error(err);
+      } finally {
+        createFolderBtn.disabled = false;
+        createFolderBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Create Drive Folder Now
+        `;
+      }
+    }
+
+    // Local fallback: always mirror to localStorage so list page shows new row
+    function saveMeasurementLocal(data) {
+      try {
+        const stored = localStorage.getItem('shibaam_measurements');
+        const measurements = stored ? JSON.parse(stored) : [];
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id');
+        if (editId) {
+          const idx = measurements.findIndex(m => m.id === editId);
+          if (idx !== -1) {
+            measurements[idx] = { ...measurements[idx], ...data };
+            localStorage.setItem('shibaam_measurements', JSON.stringify(measurements));
+            return { success: true, record: measurements[idx], updated: true };
+          }
+        }
+        const newRecord = {
+          id: 'meas' + Date.now(),
+          ...data,
+          createdAt: new Date().toISOString(),
+          hasLink: !!data.driveLink
+        };
+        measurements.unshift(newRecord);
+        localStorage.setItem('shibaam_measurements', JSON.stringify(measurements));
+        return { success: true, record: newRecord };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    }
+
+    function isAppsScriptConfigured() {
+      return APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID');
+    }
+
+    // Main save: Create folder (if not exists) + Save measurement
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+
+      const driveRequired = !isAppsScriptConfigured();
+      const errors = validateForm(driveRequired);
+      if (errors.length > 0) {
+        showError(errors.join('. '));
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Creating Drive folder...';
+
+      const data = collectFormData();
+      const custName = data.custName;
+      const jobNo = data.jobNo || 'NEW';
+      const date = data.date;
+
+      try {
+        // Step 1: Create Drive folder if not already created
+        if (!data.driveLink && isAppsScriptConfigured()) {
+          showToast('Creating Google Drive folder...', false);
+          const folderResult = await createDriveFolderViaAppsScript(custName, jobNo, date);
+          data.driveLink = folderResult.folderUrl;
+          data.driveFolderId = folderResult.folderId || '';
+          driveLinkInput.value = folderResult.folderUrl;
+          driveLinkInput.dataset.folderId = folderResult.folderId || '';
+          showToast('Drive folder created', true);
+        } else if (!data.driveLink && !isAppsScriptConfigured()) {
+          // Local/demo mode: generate a placeholder link so list shows it
+          data.driveLink = '';
+        }
+        if (!data.driveFolderId) data.driveFolderId = driveLinkInput.dataset.folderId || '';
+
+        // Step 2: Save measurement data (backend + local mirror)
+        saveBtn.textContent = 'Saving measurement...';
+        if (isAppsScriptConfigured()) {
+          try { await saveMeasurementViaAppsScript(data); }
+          catch (backendErr) { console.warn('Backend save failed, using local only:', backendErr); }
+        }
+        saveMeasurementLocal(data);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        showToast(urlParams.get('id') ? 'Measurement updated successfully' : 'Measurement saved & Drive folder created', true);
+
+        // Redirect after brief delay
+        setTimeout(() => {
+          window.location.href = './admin-measurements.html';
+        }, 1500);
+
+      } catch (err) {
+        showError('Failed: ' + err.message);
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save & Create Drive Link';
+        console.error(err);
+      }
+    });
+
+    // Clear error on input
+    form.querySelectorAll('input, textarea').forEach(el => {
+      el.addEventListener('input', clearError);
+    });
+
+    // Edit mode: prefill from ?id=xxx (localStorage first, then defaults)
+    (function prefillEditMode() {
+      let editId = null;
+      try { editId = new URLSearchParams(window.location.search).get('id'); } catch (e) {}
+      if (!editId) return;
+      let rec = null;
+      try {
+        const stored = JSON.parse(localStorage.getItem('shibaam_measurements') || '[]');
+        rec = stored.find(m => m.id === editId) || null;
+      } catch (e) {}
+      if (!rec) return;
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = v; };
+      set('custName', rec.custName); set('custPhone', rec.custPhone);
+      set('jobNo', rec.jobNo); set('measureDate', rec.date);
+      set('address', rec.address); set('driveLink', rec.driveLink);
+      if (rec.driveFolderId) driveLinkInput.dataset.folderId = rec.driveFolderId;
+      set('others', rec.others);
+      MEASUREMENT_FIELDS.forEach(f => set(f, rec[f]));
+      document.querySelector('.header-title h1').textContent = 'Edit Measurement';
+      saveBtn.textContent = 'Update Measurement';
+      if (rec.driveLink) { driveLinkInput.removeAttribute('readonly'); }
+    })();
+
+    // Drive helper functions
+    function openDriveHelper() {
+      const message = `How to get a Google Drive shareable link (manual):
+
+1. Open Google Drive (drive.google.com)
+2. Upload your measurement file/folder
+3. Right-click the file → "Share"
+4. Click "Change to anyone with the link"
+5. Set to "Viewer" (Anyone with link can view)
+6. Click "Copy link"
+7. Paste the link in the Drive Link field above
+
+The link will look like:
+https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+OR
+https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing`;
+
+      alert(message);
+    }
+
+    // Print function - optimized for A5
+    function printMeasurement() {
+      const saveBar = document.querySelector('.save-bar');
+      const driveHelper = document.querySelector('.drive-helper');
+      const errorState = document.querySelector('.error-state');
+
+      if (saveBar) saveBar.style.display = 'none';
+      if (driveHelper) driveHelper.style.display = 'none';
+      if (errorState) errorState.style.display = 'none';
+
+      window.print();
+
+      setTimeout(() => {
+        if (saveBar) saveBar.style.display = '';
+        if (driveHelper) driveHelper.style.display = '';
+        if (errorState) errorState.style.display = '';
+      }, 500);
+    }
+
+    // Save as PDF - optimized for A5
+    function saveAsPDF() {
+      const element = document.querySelector('.card');
+      const custName = document.getElementById('custName').value.trim() || 'Measurement';
+      const filename = `${custName.replace(/\s+/g, '_')}_SHIBAAM_Measurement.pdf`;
+
+      const saveBar = document.querySelector('.save-bar');
+      const driveHelper = document.querySelector('.drive-helper');
+      const errorState = document.querySelector('.error-state');
+
+      if (saveBar) saveBar.style.display = 'none';
+      if (driveHelper) driveHelper.style.display = 'none';
+      if (errorState) errorState.style.display = 'none';
+
+      html2pdf().set({
+        margin: [10, 10, 10, 10],
+        filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      }).from(element).save().then(() => {
+        if (saveBar) saveBar.style.display = '';
+        if (driveHelper) driveHelper.style.display = '';
+        if (errorState) errorState.style.display = '';
+      });
+    }
+  </script>
+</body>
+</html>

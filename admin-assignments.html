@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Worker Assignments</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+      --good:#2a7d2a;
+      --amber:#9c7a1f;
+      --warn:#b3261e;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
+
+    .btn-primary{
+      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-secondary{
+      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+
+    .filter-bar{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
+    }
+    .filter-btn{
+      padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;transition:.2s;
+    }
+    .filter-btn:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .filter-btn.active{background:var(--brown);color:#fff;border-color:var(--brown);}
+
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{background:var(--cream);color:var(--brown-dark);border:1px solid var(--line);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+    td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;}
+    tr:hover td{background:#faf8f5;}
+
+    .assignment-item{font-weight:600;color:var(--ink);}
+    .assignment-job{font-family:Georgia;font-size:12px;color:var(--brown-dark);}
+    .assignment-particular{font-size:12px;color:var(--muted);margin-top:2px;}
+
+    .worker-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;
+    }
+    .worker-badge.assigned{background:#e3f2fd;color:#1565c0;}
+    .worker-badge.arrived{background:#fff3e0;color:#b36b00;}
+    .worker-badge.completed{background:#e8f5e9;color:#2e7d32;}
+    .worker-badge.unassigned{background:#fef9e7;color:#9c7a1f;}
+
+    .stage-tag{
+      display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;
+      background:#f3e8de;color:var(--brown);
+    }
+
+    .btn-sm{
+      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
+    }
+    .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
+    .btn-sm.primary:hover{background:var(--brown-dark);}
+    .btn-sm.success{background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32;}
+    .btn-sm.success:hover{background:#c8e6c9;}
+    .btn-sm.danger{background:#fef2f2;border-color:#fecaca;color:#b3261e;}
+    .btn-sm.danger:hover{background:#fee2e2;}
+
+    .wa-btn{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid #c8e6c9;background:#e8f5e9;color:#2e7d32;cursor:pointer;transition:.2s;
+    }
+    .wa-btn:hover{background:#c8e6c9;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:40px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.stats-grid{grid-template-columns:1fr}}
+    .stat-card{
+      background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;
+    }
+    .stat-value{font-family:Georgia;font-weight:600;font-size:28px;color:var(--brown-dark);margin-bottom:4px;}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      th,td{padding:10px 12px;font-size:12px;}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./admin.html" aria-label="Back to Admin Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Admin Portal</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-value" id="statTotalAssign">0</div><div class="stat-label">Total Assignments</div></div>
+        <div class="stat-card"><div class="stat-value" id="statWorkAssign">0</div><div class="stat-label">Work Stage</div></div>
+        <div class="stat-card"><div class="stat-value" id="statStitchAssign">0</div><div class="stat-label">Stitching Stage</div></div>
+        <div class="stat-card"><div class="stat-value" id="statCompletedAssign">0</div><div class="stat-label">Completed</div></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h1>Worker Assignments</h1>
+            <p>View and manage work & stitching assignments across all jobs</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+          <button class="filter-btn" data-filter="work" onclick="setFilter(this,'work')">Work Stage</button>
+          <button class="filter-btn" data-filter="stitching" onclick="setFilter(this,'stitching')">Stitching Stage</button>
+          <button class="filter-btn" data-filter="unassigned" onclick="setFilter(this,'unassigned')">Unassigned</button>
+          <button class="filter-btn" data-filter="completed" onclick="setFilter(this,'completed')">Completed</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="assignTable">
+            <thead>
+              <tr>
+                <th style="width:120px;">Job No.</th>
+                <th>Customer</th>
+                <th style="width:200px;">Particular</th>
+                <th style="width:100px;">Stage</th>
+                <th style="width:140px;">Status</th>
+                <th style="width:160px;">Assigned Worker</th>
+                <th style="width:180px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="assignBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 4l6 6"/><path d="M16 2l6 6"/><path d="M4 20l7-7"/><path d="M3 21l3-1 13-13-3-3L3 17l-1 3 1 1z"/></svg></div>
+          <p>No assignments found for this filter.</p>
+        </div>
+      </div>
+
+      <a class="back-link" href="./admin.html" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Admin Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data - in production, fetch from Apps Script backend
+    // This mirrors the jobs data from admin-jobs.html
+    let assignmentsData = [
+      // Job H4600
+      { jobNo: 'H4600', customerName: 'Ayesha Patel', particularId: 'p1', particularName: 'Bridal Lehenga', category: 'LADIES', stage: 'WORK', status: 'WORK_ARRIVED', worker: 'Ahmed Raza' },
+      { jobNo: 'H4600', customerName: 'Ayesha Patel', particularId: 'p2', particularName: 'Dupatta', category: 'LADIES', stage: 'WORK', status: 'WORK_ARRIVED', worker: 'Ahmed Raza' },
+      // Job H4601 (GENTS - has stitching)
+      { jobNo: 'H4601', customerName: 'Rahul Sharma', particularId: 'p3', particularName: 'Sherwani', category: 'GENTS', stage: 'WORK', status: 'COMPLETED', worker: 'Huzaifa Tarwala' },
+      { jobNo: 'H4601', customerName: 'Rahul Sharma', particularId: 'p3', particularName: 'Sherwani', category: 'GENTS', stage: 'STITCHING', status: 'COMPLETED', worker: 'Huzaifa Tarwala' },
+      { jobNo: 'H4601', customerName: 'Rahul Sharma', particularId: 'p4', particularName: 'Churidar', category: 'GENTS', stage: 'WORK', status: 'COMPLETED', worker: 'Huzaifa Tarwala' },
+      { jobNo: 'H4601', customerName: 'Rahul Sharma', particularId: 'p4', particularName: 'Churidar', category: 'GENTS', stage: 'STITCHING', status: 'COMPLETED', worker: 'Huzaifa Tarwala' },
+      // Job H4602
+      { jobNo: 'H4602', customerName: 'Fatima Khan', particularId: 'p5', particularName: 'Anarkali Suit', category: 'LADIES', stage: 'WORK', status: 'WORK_ASSIGNED', worker: 'Mohammed Ali' },
+      // Job H4603
+      { jobNo: 'H4603', customerName: 'Priya Desai', particularId: 'p6', particularName: 'Saree Blouse', category: 'LADIES', stage: 'WORK', status: 'UNASSIGNED', worker: null },
+    ];
+
+    let currentFilter = 'all';
+
+    const assignBody = document.getElementById('assignBody');
+    const emptyState = document.getElementById('emptyState');
+
+    function backendCall(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
+    }
+    async function syncAssignmentsFromBackend() {
+      try {
+        if (!getAdminToken()) return;
+        const rows = await api('admin_list_assignments', { token: getAdminToken(), filter: 'all' });
+        if (Array.isArray(rows) && rows.length) {
+          assignmentsData = rows;
+          renderAssignments();
+          updateStats();
+        }
+      } catch (err) { console.warn('Backend sync failed, local only:', err); }
+    }
+
+    // Stats
+    function updateStats() {
+      const total = assignmentsData.length;
+      const work = assignmentsData.filter(a => a.stage === 'WORK').length;
+      const stitching = assignmentsData.filter(a => a.stage === 'STITCHING').length;
+      const completed = assignmentsData.filter(a => a.status === 'COMPLETED').length;
+
+      document.getElementById('statTotalAssign').textContent = total;
+      document.getElementById('statWorkAssign').textContent = work;
+      document.getElementById('statStitchAssign').textContent = stitching;
+      document.getElementById('statCompletedAssign').textContent = completed;
+    }
+
+    // Filter
+    function setFilter(btn, filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAssignments();
+    }
+
+    function getFilteredAssignments() {
+      if (currentFilter === 'all') return assignmentsData;
+      if (currentFilter === 'work') return assignmentsData.filter(a => a.stage === 'WORK');
+      if (currentFilter === 'stitching') return assignmentsData.filter(a => a.stage === 'STITCHING');
+      if (currentFilter === 'unassigned') return assignmentsData.filter(a => a.status === 'UNASSIGNED');
+      if (currentFilter === 'completed') return assignmentsData.filter(a => a.status === 'COMPLETED');
+      return assignmentsData;
+    }
+
+    function getStatusClass(status) {
+      const map = {
+        'UNASSIGNED': 'unassigned',
+        'WORK_ASSIGNED': 'assigned', 'STITCHING_ASSIGNED': 'assigned',
+        'WORK_ARRIVED': 'arrived', 'STITCHING_ARRIVED': 'arrived',
+        'COMPLETED': 'completed'
+      };
+      return map[status] || 'unassigned';
+    }
+
+    function formatStatus(status) {
+      const map = {
+        'UNASSIGNED': 'Unassigned',
+        'WORK_ASSIGNED': 'Work Assigned', 'STITCHING_ASSIGNED': 'Stitching Assigned',
+        'WORK_ARRIVED': 'Work Arrived', 'STITCHING_ARRIVED': 'Stitching Arrived',
+        'COMPLETED': 'Completed'
+      };
+      return map[status] || status;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    function renderAssignments() {
+      const assignments = getFilteredAssignments();
+      if (assignments.length === 0) {
+        assignBody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+      assignBody.innerHTML = assignments.map(a => `
+        <tr>
+          <td><span class="assignment-job">${escapeHtml(a.jobNo)}</span></td>
+          <td>${escapeHtml(a.customerName)}</td>
+          <td>
+            <div class="assignment-item">${escapeHtml(a.particularName)}</div>
+            <span class="stage-tag">${a.category}</span>
+          </td>
+          <td>
+            <span class="stage-tag">${a.stage}</span>
+          </td>
+          <td>
+            <span class="worker-badge ${getStatusClass(a.status)}">${formatStatus(a.status)}</span>
+          </td>
+          <td>${a.worker ? `<strong>${escapeHtml(a.worker)}</strong>` : '<span style="color:var(--muted);">—</span>'}</td>
+          <td>
+            ${getActions(a)}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function getActions(a) {
+      if (a.status === 'COMPLETED') {
+        return `<button class="btn-sm danger" onclick="resetAssignment('${a.jobNo}','${a.particularId}','${a.stage}')">Reset</button>`;
+      }
+      if (a.status === 'WORK_ARRIVED' || a.status === 'STITCHING_ARRIVED') {
+        return `
+          <button class="btn-sm success" onclick="markComplete('${a.jobNo}','${a.particularId}','${a.stage}')">Mark Complete</button>
+          <button class="btn-sm danger" onclick="undoArrived('${a.jobNo}','${a.particularId}','${a.stage}')">Undo</button>
+        `;
+      }
+      if (a.status === 'WORK_ASSIGNED' || a.status === 'STITCHING_ASSIGNED') {
+        return `
+          <button class="btn-sm success" onclick="markArrived('${a.jobNo}','${a.particularId}','${a.stage}')">Mark Arrived</button>
+          <button class="btn-sm danger" onclick="resetAssignment('${a.jobNo}','${a.particularId}','${a.stage}')">Reset</button>
+          <button class="wa-btn" data-wa-job="${a.jobNo}" data-wa-part="${a.particularId}" data-wa-stage="${a.stage}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            WhatsApp
+          </button>
+        `;
+      }
+      // UNASSIGNED
+      return `
+        <button class="btn-sm primary" onclick="assignWorker('${a.jobNo}','${a.particularId}','${a.stage}')">Assign Worker</button>
+        <button class="wa-btn" data-wa-job="${a.jobNo}" data-wa-part="${a.particularId}" data-wa-stage="${a.stage}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          WhatsApp
+        </button>
+      `;
+    }
+
+    // Action handlers (demo - update local data)
+    function assignWorker(jobNo, particularId, stage) {
+      const workers = [
+        { name: 'Huzaifa Tarwala', category: 'GENTS' },
+        { name: 'Ahmed Raza', category: 'LADIES' },
+        { name: 'Fatima Sheikh', category: 'LADIES' },
+        { name: 'Mohammed Ali', category: 'GENTS' }
+      ];
+      const choice = prompt(`Assign ${stage} worker for ${particularId} (${jobNo}):\n${workers.map((w,i) => `${i+1}. ${w.name} (${w.category})`).join('\n')}\nEnter number:`);
+      if (!choice) return;
+      const idx = parseInt(choice) - 1;
+      if (idx >= 0 && idx < workers.length) {
+        const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
+        if (a) {
+          a.worker = workers[idx].name;
+          a.status = stage === 'WORK' ? 'WORK_ASSIGNED' : 'STITCHING_ASSIGNED';
+          backendCall('admin_assign_worker', { jobNo: a.jobNo, particularId: a.particularId, stage, worker: a.worker });
+          renderAssignments();
+          updateStats();
+        }
+      }
+    }
+
+    function markArrived(jobNo, particularId, stage) {
+      const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
+      if (!a) return;
+      a.status = stage === 'WORK' ? 'WORK_ARRIVED' : 'STITCHING_ARRIVED';
+      backendCall('admin_mark_arrived', { jobNo: a.jobNo, particularId: a.particularId, stage });
+      renderAssignments();
+      updateStats();
+    }
+
+    function undoArrived(jobNo, particularId, stage) {
+      const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
+      if (!a) return;
+      a.status = stage === 'WORK' ? 'WORK_ASSIGNED' : 'STITCHING_ASSIGNED';
+      // Backend has no undo-arrival: reset then re-assign to restore ASSIGNED state
+      (async () => {
+        const r1 = await backendCall('admin_reset_stage', { jobNo: a.jobNo, particularId: a.particularId, stage });
+        if (r1 !== null && a.worker) await backendCall('admin_assign_worker', { jobNo: a.jobNo, particularId: a.particularId, stage, worker: a.worker });
+      })();
+      renderAssignments();
+      updateStats();
+    }
+
+    function markComplete(jobNo, particularId, stage) {
+      const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
+      if (!a) return;
+      a.status = 'COMPLETED';
+      backendCall('admin_complete_particular', { jobNo: a.jobNo, particularId: a.particularId, stage: a.stage });
+      renderAssignments();
+      updateStats();
+    }
+
+    function resetAssignment(jobNo, particularId, stage) {
+      if (!confirm('Reset this assignment? Worker will be unassigned.')) return;
+      const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
+      if (!a) return;
+      a.worker = null;
+      a.status = 'UNASSIGNED';
+      backendCall('admin_reset_stage', { jobNo: a.jobNo, particularId: a.particularId, stage: a.stage });
+      renderAssignments();
+      updateStats();
+    }
+
+    function sendAssignmentWA(jobNo, particularId, stage) {
+      const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage) || {};
+      const particularName = a.particularName || particularId;
+      const worker = a.worker || '';
+      const message = `Hello SHIBAAM Team,
+
+*Assignment Update*
+• Job No: ${jobNo}
+• Particular: ${particularName}
+• Stage: ${stage}
+• ${worker ? 'Worker: ' + worker : 'Not yet assigned'}
+
+Please check and update status.`;
+
+      window.open(`https://wa.me/919601879952?text=${encodeURIComponent(message)}`, '_blank');
+    }
+    // Delegated handler: no raw names in markup (quote-safe, e.g. Men's Sherwani)
+    document.getElementById('assignBody').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-wa-job]');
+      if (!btn) return;
+      sendAssignmentWA(btn.dataset.waJob, btn.dataset.waPart, btn.dataset.waStage);
+    });
+
+    // Init
+    renderAssignments();
+    updateStats();
+    syncAssignmentsFromBackend();
+
+    // Listen for updates from admin-jobs.html
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'shibaam_jobs') {
+        try {
+          const jobs = JSON.parse(e.newValue);
+          // Rebuild assignments from jobs data
+          rebuildAssignments(jobs);
+        } catch {}
+      }
+    });
+
+    function rebuildAssignments(jobs) {
+      const newAssignments = [];
+      jobs.forEach(job => {
+        job.particulars.forEach(p => {
+          newAssignments.push({
+            jobNo: job.jobNo,
+            customerName: job.customerName,
+            particularId: p.id,
+            particularName: p.name,
+            category: p.category,
+            stage: 'WORK',
+            status: p.status.includes('STITCHING') ? 'WORK_ARRIVED' : p.status,
+            worker: p.worker
+          });
+          if (p.category === 'GENTS') {
+            newAssignments.push({
+              jobNo: job.jobNo,
+              customerName: job.customerName,
+              particularId: p.id,
+              particularName: p.name,
+              category: p.category,
+              stage: 'STITCHING',
+              status: p.status.includes('STITCHING') ? p.status : 'UNASSIGNED',
+              worker: p.stitchWorker || null
+            });
+          }
+        });
+      });
+      assignmentsData = newAssignments;
+      renderAssignments();
+      updateStats();
+    }
+  </script>
+</body>
+</html>

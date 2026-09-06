@@ -1,0 +1,130 @@
+SHIBAAM Collection Portal — ALL MANUAL CHANGES (step by step)
+============================================================
+Do these in order. Each step says FILE + LINE HINT + what to change.
+
+------------------------------------------------------------
+STEP 1 — Deploy the backend (Google Apps Script)
+------------------------------------------------------------
+1a. Open your Google Sheet -> Extensions -> Apps Script.
+1b. Delete everything in Code.gs, paste the full contents of:
+      /shibaam/files/Code.gs   (1023 lines)
+1c. In the Apps Script toolbar, select function: setupSpreadsheet
+    Click Run. Accept all authorization prompts (Spreadsheet + Drive).
+    This creates 9 tabs, freezes row 1, seeds Settings + 4 AdminKeys.
+1d. Deploy -> New deployment -> type Web App:
+      Execute as: Me
+      Who has access: Anyone
+1e. Click Deploy. Copy the Web App URL. It looks like:
+      https://script.google.com/macros/s/AKfycb.../exec
+    KEEP THIS URL — you need it in Step 2.
+
+------------------------------------------------------------
+STEP 2 — Point the measurement page at your backend
+------------------------------------------------------------
+FILE: admin-measurement-add.html  (line ~450)
+FIND:
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+REPLACE YOUR_SCRIPT_ID with your real deployment ID from Step 1e.
+Example:
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycb.../exec';
+
+NOTE: Until you do this, the page runs in LOCAL DEMO mode
+(localStorage only). After you set the URL, saves also go to
+your Google Sheet + real Drive folders are created.
+
+------------------------------------------------------------
+STEP 3 — Replace the deployed-site link in WhatsApp messages
+------------------------------------------------------------
+FILE: admin-new-job.html  (line ~579, inside generateWhatsAppMessage)
+FIND:
+    Track your order at: https://your-domain.vercel.app/customer-orders.html
+REPLACE your-domain.vercel.app with your real deployed domain.
+Example:
+    Track your order at: https://shibaam.vercel.app/customer-orders.html
+
+------------------------------------------------------------
+STEP 4 — Verify / change the shop WhatsApp number
+------------------------------------------------------------
+The shop number 919601879952 is currently hardcoded in 9 places.
+If your shop WhatsApp number is DIFFERENT, find-replace ALL:
+    919601879952  ->  <your number with country code, no + sign>
+Files containing it:
+  - index.html                (line ~423, help link)
+  - admin.html                (line ~487, help link)
+  - customer.html             (line ~397, help link)
+  - admin-login.html          (line ~213, help link)
+  - customer-orders.html      (lines ~529, ~547, wa.me opens)
+  - customer-shop-video.html  (line ~376, const shopWhatsApp)
+  - admin-jobs.html           (line ~680, stage WhatsApp)
+  - admin-assignments.html    (line ~472, assignment WhatsApp)
+  - admin-workers.html        (line ~317, demo worker phone)
+  - admin-settings.html       (line ~246 default value, line ~431 default sales team)
+  - Code.gs                   (lines ~164, ~168, seed Settings + sales team)
+If the number is CORRECT, skip this step.
+
+Second department number (Saya / Kurta / Ezar):
+FILE: admin-new-job.html  (line ~583)
+FIND:    Saya / Kurta / Ezar: 7984986113
+Change only if this number is wrong.
+
+------------------------------------------------------------
+STEP 5 — Match AdminKeys between backend and demo login
+------------------------------------------------------------
+Code.gs seeds these 4 keys on setup (AdminKeys tab):
+    SHBM-SUPER-2024 / SHBM-ADMIN-2024 / SHBM-ADMIN-001 / SHBM-ADMIN-002
+admin-login.html VALID_KEYS (line ~219) contains the SAME 4 keys
+for offline demo mode.
+- To ADD a staff member: add the key in BOTH places
+  (AdminKeys sheet row + VALID_KEYS object), or better: wire
+  admin-login.html to call api('login_admin') once backend is live.
+- To DISABLE a key: set active=FALSE in the AdminKeys sheet
+  (backend refuses it) AND remove it from VALID_KEYS.
+
+------------------------------------------------------------
+STEP 6 — Sales team names (2 places, keep in sync)
+------------------------------------------------------------
+DEFAULT list lives in:
+  - Code.gs seedSettings()  (lines ~167-172, used by backend)
+  - admin-settings.html      (line ~431, offline default)
+  - admin-new-job.html / customer-shop-video.html load from
+    localStorage key shibaam_sales_team (written by admin-settings page).
+After going live, edit the team ONLY in admin-settings.html and
+click save — it writes localStorage (and backend once wired).
+
+------------------------------------------------------------
+STEP 7 — Demo data you may want to clear
+------------------------------------------------------------
+These pages ship with hardcoded demo rows for offline testing.
+They are REPLACED automatically once real localStorage/backend
+data exists, but you can delete them to start empty:
+  - admin-jobs.html          DEFAULT_JOBS array (SHBM-4600..4603)
+  - admin-measurements.html  DEFAULT_MEASUREMENTS array (4 rows)
+  - admin-workers.html       workersData array (5 rows)
+  - admin-customers.html     customers array (4 rows)
+  - admin-delivery.html      deliveriesData array (5 rows)
+  - admin-queries.html       DEFAULT_QUERIES array (4 rows)
+  - customer-orders.html     DEMO_ORDERS object (SHBM-4600..4602)
+To clear at runtime instead: open browser console and run
+  localStorage.clear()
+then reload.
+
+------------------------------------------------------------
+STEP 8 — Optional cosmetic placeholders (safe to ignore)
+------------------------------------------------------------
+  - admin-customers.html line ~300: placeholder="ayesha@example.com"
+    (example text only, change if you like)
+  - admin-settings.html lines ~246, ~293: placeholder="91XXXXXXXXXX"
+    (hint text only, no change needed)
+  - README.md contains the same Code.gs + setup guide; no edits needed.
+
+------------------------------------------------------------
+CHECKLIST (tick when done)
+------------------------------------------------------------
+[ ] Step 1 — backend deployed, setupSpreadsheet() run, URL copied
+[ ] Step 2 — APPS_SCRIPT_URL pasted in admin-measurement-add.html
+[ ] Step 3 — real domain in admin-new-job.html WhatsApp message
+[ ] Step 4 — shop numbers verified (or replaced everywhere)
+[ ] Step 5 — AdminKeys match backend + login page
+[ ] Step 6 — sales team names correct
+[ ] Step 7 — demo data cleared (optional)
+[ ] End-to-end test: login admin -> create job -> customer views order

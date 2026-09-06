@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Admin Login</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+
+    .login-card{
+      width:100%;
+      max-width:420px;
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:40px;
+      box-shadow:var(--shadow);
+    }
+
+    .login-header{
+      text-align:center;
+      margin-bottom:32px;
+    }
+
+    .login-header .icon{
+      width:64px;height:64px;
+      border-radius:16px;
+      background:#f3e8de;
+      color:var(--brown);
+      display:grid;
+      place-items:center;
+      margin:0 auto 16px;
+    }
+    .login-header .icon svg{width:30px;height:30px}
+
+    .login-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:28px;
+      color:var(--brown-dark);
+      margin:0 0 8px;
+    }
+
+    .login-header p{
+      color:var(--muted);
+      font-size:14px;
+      margin:0;
+    }
+
+    .form-group{
+      margin-bottom:20px;
+    }
+
+    .form-group label{
+      display:block;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.7px;
+      color:#6f6159;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    .form-group input{
+      width:100%;
+      border:1px solid #dfd0c5;
+      background:#fff;
+      border-radius:12px;
+      padding:14px 16px;
+      color:var(--ink);
+      outline:none;
+      font-size:15px;
+      transition:.2s;
+    }
+
+    .form-group input:focus{
+      border-color:#b98976;
+      box-shadow:0 0 0 3px rgba(139,74,54,.08);
+    }
+
+    .btn-primary{
+      width:100%;
+      border:0;
+      border-radius:12px;
+      padding:14px;
+      font-weight:800;
+      font-size:14px;
+      cursor:pointer;
+      background:var(--brown);
+      color:#fff;
+      transition:.2s;
+    }
+
+    .btn-primary:hover{
+      background:var(--brown-dark);
+    }
+
+    .btn-primary:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+    }
+
+    .error-msg{
+      background:#fef2f2;
+      border:1px solid #fecaca;
+      color:#b91c1c;
+      padding:12px 16px;
+      border-radius:10px;
+      font-size:13px;
+      margin-bottom:20px;
+      display:none;
+    }
+
+    .error-msg.show{display:block;}
+
+    .help-text{
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:20px;
+    }
+
+    .help-text a{
+      color:var(--brown);
+      font-weight:600;
+    }
+
+    .key-hint{
+      background:#faf5ee;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:12px 16px;
+      font-size:12px;
+      color:#786b63;
+      line-height:1.5;
+      margin-top:16px;
+    }
+
+    .key-hint strong{color:var(--brown-dark);}
+
+    @media(max-width:520px){
+      .login-card{padding:24px;border-radius:20px}
+      .login-header h1{font-size:24px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <div class="icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M12 3l8 3v5c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-3z"/>
+          <path d="M9.5 12l1.7 1.7 3.6-4"/>
+        </svg>
+      </div>
+      <h1>Admin Access</h1>
+      <p>Enter your Key License to continue</p>
+    </div>
+
+    <div class="error-msg" id="errorMsg" role="alert"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="keyLicense">Key License</label>
+        <input
+          type="text"
+          id="keyLicense"
+          name="keyLicense"
+          placeholder="e.g. SHBM-ADMIN-2024"
+          autocomplete="off"
+          required
+        >
+      </div>
+      <button type="submit" class="btn-primary" id="submitBtn">Sign In</button>
+    </form>
+
+    <div class="key-hint">
+      <strong>Key License format:</strong> SHBM-ADMIN-XXXX or SHBM-SUPER-XXXX<br>
+      Contact Super Admin if you don't have a valid key.
+    </div>
+
+    <div class="help-text">
+      Need help? <a href="https://wa.me/919601879952" target="_blank" rel="noopener">Contact SHIBAAM on WhatsApp</a>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Valid key licenses (in production, verify against Apps Script backend)
+    const VALID_KEYS = {
+      'SHBM-SUPER-2024': { role: 'SUPER_ADMIN', name: 'Super Admin' },
+      'SHBM-ADMIN-2024': { role: 'ADMIN', name: 'Admin User' },
+      'SHBM-ADMIN-001': { role: 'ADMIN', name: 'Admin 1' },
+      'SHBM-ADMIN-002': { role: 'ADMIN', name: 'Admin 2' }
+    };
+
+    const form = document.getElementById('loginForm');
+    const keyInput = document.getElementById('keyLicense');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorMsg = document.getElementById('errorMsg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const key = keyInput.value.trim().toUpperCase();
+      if (!key) {
+        showError('Please enter your Key License');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Verifying...';
+      errorMsg.classList.remove('show');
+
+      // Server-first verification (Apps Script), local VALID_KEYS fallback offline
+      let user = null;
+      try {
+        const res = await api('login_admin', { keyLicense: key });
+        user = { role: res.role, name: res.name };
+        sessionStorage.setItem('shibaam_admin_token', res.token);
+      } catch (err) {
+        console.warn('Backend login failed, trying local keys:', err);
+        await new Promise(r => setTimeout(r, 400));
+        user = VALID_KEYS[key] || null;
+        if (!user) {
+          showError(err && err.message === 'Invalid Key License'
+            ? 'Invalid Key License. Please check and try again.'
+            : 'Invalid Key License. Please check and try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+          return;
+        }
+        // Offline/demo fallback: mint a local-* token so every backendCall
+        // still sends a token (backend accepts local-* as offline pass).
+        sessionStorage.setItem('shibaam_admin_token', 'local-' + key);
+      }
+
+      if (user) {
+        // Store auth in sessionStorage (guard checks shibaam_admin_key)
+        sessionStorage.setItem('shibaam_admin_key', key);
+        sessionStorage.setItem('shibaam_admin_role', user.role);
+        sessionStorage.setItem('shibaam_admin_name', user.name);
+
+        // Redirect to admin portal
+        window.location.href = './admin.html';
+      } else {
+        showError('Invalid Key License. Please check and try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    });
+
+    function showError(message) {
+      errorMsg.textContent = message;
+      errorMsg.classList.add('show');
+      keyInput.focus();
+    }
+
+    // Auto-focus
+    keyInput.focus();
+
+    // Check if already logged in
+    if (sessionStorage.getItem('shibaam_admin_key')) {
+      window.location.href = './admin.html';
+    }
+  </script>
+</body>
+</html>

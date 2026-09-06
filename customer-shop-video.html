@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Shop & Video Call</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(720px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+    }
+
+    .card-header{
+      text-align:center;
+      margin-bottom:24px;
+    }
+
+    .card-header .icon{
+      width:48px;height:48px;
+      border-radius:14px;
+      background:#f3e8de;
+      color:var(--brown);
+      display:grid;
+      place-items:center;
+      margin:0 auto 12px;
+    }
+    .card-header .icon svg{width:24px;height:24px}
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0 0 6px;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:0;}
+
+    .form-group{margin-bottom:20px;}
+    .form-group label{
+      display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;
+    }
+    .form-group select,.form-group input,.form-group textarea{
+      width:100%;border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:14px 16px;color:var(--ink);outline:none;font-size:15px;transition:.2s;font-family:inherit;
+    }
+    .form-group select:focus,.form-group input:focus,.form-group textarea:focus{
+      border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);
+    }
+    .form-group textarea{min-height:120px;resize:vertical;}
+
+    .radio-group{display:flex;flex-direction:column;gap:10px;}
+    .radio-option{
+      display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+      padding:14px 16px;border:1px solid var(--line);border-radius:12px;transition:.2s;
+    }
+    .radio-option:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .radio-option input{width:18px;height:18px;accent-color:var(--brown);margin-top:2px;flex-shrink:0;}
+    .radio-option .radio-label{display:flex;flex-direction:column;gap:2px;}
+    .radio-option .radio-title{font-weight:600;color:var(--ink);font-size:14px;}
+    .radio-option .radio-desc{font-size:12px;color:var(--muted);}
+
+    .btn-primary{
+      width:100%;border:0;border-radius:12px;padding:14px;font-weight:800;font-size:14px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;margin-top:8px;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+
+    .msg-preview{
+      background:#faf5ee;border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:20px;font-size:12px;color:#786b63;line-height:1.6;white-space:pre-wrap;display:none;
+    }
+    .msg-preview.show{display:block;}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;margin-top:20px;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,720px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./customer.html" aria-label="Back to Customer Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Surat · Since 1990</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="card-header">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <circle cx="9" cy="21" r="1"/>
+              <circle cx="20" cy="21" r="1"/>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+          </div>
+          <h1>Shop & Video Call</h1>
+          <p>Book a personalised video call or WhatsApp consultation with our sales team.</p>
+        </div>
+
+        <form id="shopForm">
+          <!-- Contact Info -->
+          <div class="form-group">
+            <label for="custName">Your Name</label>
+            <input type="text" id="custName" name="custName" placeholder="e.g. Ayesha Patel" required>
+          </div>
+
+          <div class="form-group">
+            <label for="custPhone">WhatsApp Number (with country code)</label>
+            <input type="tel" id="custPhone" name="custPhone" placeholder="91 98765 43210" required>
+          </div>
+
+          <!-- Sales Person Selection -->
+          <div class="form-group">
+            <label>Preferred Sales Person</label>
+            <div class="radio-group" id="salesPersonGroup">
+              <label class="radio-option">
+                <input type="radio" name="salesPerson" value="auto" checked>
+                <span class="radio-label">
+                  <span class="radio-title">Auto-assign best match</span>
+                  <span class="radio-desc">We'll assign the most suitable sales person based on your requirements</span>
+                </span>
+              </label>
+              <label class="radio-option" id="specificPersonOption">
+                <input type="radio" name="salesPerson" value="specific">
+                <span class="radio-label">
+                  <span class="radio-title">Choose specific person</span>
+                  <span class="radio-desc">Select from our team below</span>
+                </span>
+              </label>
+            </div>
+            <select id="specificSalesPerson" class="form-group" style="display:none;margin-top:10px;" disabled>
+              <option value="">Loading sales team...</option>
+            </select>
+          </div>
+
+          <!-- Requirements -->
+          <div class="form-group">
+            <label for="requirements">Your Requirements / What you're looking for</label>
+            <textarea id="requirements" name="requirements" placeholder="e.g. Looking for bridal lehenga in maroon, budget ₹50k-80k, need by December 15th. Prefer zardosi work with gota patti details." required></textarea>
+          </div>
+
+          <!-- Preferred Date/Time -->
+          <div class="form-group">
+            <label for="preferredDate">Preferred Date for Video Call</label>
+            <input type="date" id="preferredDate" name="preferredDate">
+          </div>
+
+          <div class="form-group">
+            <label for="preferredTime">Preferred Time Slot</label>
+            <select id="preferredTime" name="preferredTime">
+              <option value="">Select time</option>
+              <option value="10:00-11:00">10:00 AM - 11:00 AM</option>
+              <option value="11:00-12:00">11:00 AM - 12:00 PM</option>
+              <option value="12:00-13:00">12:00 PM - 1:00 PM</option>
+              <option value="15:00-16:00">3:00 PM - 4:00 PM</option>
+              <option value="16:00-17:00">4:00 PM - 5:00 PM</option>
+              <option value="17:00-18:00">5:00 PM - 6:00 PM</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submitBtn">Generate WhatsApp Message</button>
+        </form>
+
+        <!-- Message Preview -->
+        <div class="msg-preview" id="msgPreview" role="region" aria-label="Generated WhatsApp message preview"></div>
+
+        <a class="back-link" href="./customer.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to Customer Portal
+        </a>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Sales team loaded from localStorage (synced with admin settings)
+    // In production, this would fetch from Apps Script backend
+    const DEFAULT_SALES_TEAM = [
+      { id: 'sp1', name: 'Huzaifa Tarwala', specialty: 'Bridal & Groomswear' },
+      { id: 'sp2', name: 'Ahmed Raza', specialty: 'Casual & Festive Wear' },
+      { id: 'sp3', name: 'Fatima Sheikh', specialty: 'Ladies Suits & Kurtas' },
+      { id: 'sp4', name: 'Mohammed Ali', specialty: 'Custom Orders & Alterations' }
+    ];
+
+    const form = document.getElementById('shopForm');
+    const specificOption = document.getElementById('specificPersonOption');
+    const specificSelect = document.getElementById('specificSalesPerson');
+    const msgPreview = document.getElementById('msgPreview');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Load sales team: backend first (public get_sales_team), local fallback
+    function loadSalesTeam() {
+      try {
+        const stored = localStorage.getItem('shibaam_sales_team');
+        return stored ? JSON.parse(stored) : DEFAULT_SALES_TEAM;
+      } catch {
+        return DEFAULT_SALES_TEAM;
+      }
+    }
+    async function syncSalesTeamFromBackend() {
+      try {
+        const team = await api('get_sales_team', {});
+        if (Array.isArray(team) && team.length) {
+          try { localStorage.setItem('shibaam_sales_team', JSON.stringify(team)); } catch (e) {}
+          renderSalesTeam();
+        }
+      } catch (err) { console.warn('Backend team sync failed, local only:', err); }
+    }
+
+    function renderSalesTeam() {
+      const team = loadSalesTeam();
+      specificSelect.innerHTML = '<option value="">Select a sales person</option>' +
+        team.map(s => `<option value="${s.id}">${s.name} — ${s.specialty}</option>`).join('');
+    }
+
+    // Toggle specific person dropdown
+    document.querySelectorAll('input[name="salesPerson"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        if (e.target.value === 'specific') {
+          specificSelect.style.display = 'block';
+          specificSelect.disabled = false;
+        } else {
+          specificSelect.style.display = 'none';
+          specificSelect.disabled = true;
+        }
+      });
+    });
+
+    // Form submit - generate WhatsApp message
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('custName').value.trim();
+      const phone = document.getElementById('custPhone').value.trim().replace(/\D/g, '');
+      const salesPersonChoice = document.querySelector('input[name="salesPerson"]:checked').value;
+      const specificPersonId = specificSelect.value;
+      const requirements = document.getElementById('requirements').value.trim();
+      const preferredDate = document.getElementById('preferredDate').value;
+      const preferredTime = document.getElementById('preferredTime').value;
+
+      if (!name || !phone || !requirements) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      // Get sales person name
+      const team = loadSalesTeam();
+      let salesPersonText = '';
+      if (salesPersonChoice === 'specific' && specificPersonId) {
+        const person = team.find(p => p.id === specificPersonId);
+        salesPersonText = person ? `${person.name} (${person.specialty})` : 'Specific person (not found)';
+      } else {
+        salesPersonText = 'Auto-assign (best match for my requirements)';
+      }
+
+      // Format date
+      const requestDate = new Date().toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric'
+      });
+      const requestTime = new Date().toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit'
+      });
+
+      // Build WhatsApp message
+      const message = `Hello SHIBAAM Team,
+
+*New Video Call / Shopping Request*
+
+*Customer Details:*
+• Name: ${name}
+• Phone: +${phone}
+• Request Date: ${requestDate} at ${requestTime}
+
+*Preferred Sales Person:*
+${salesPersonText}
+
+*Preferred Video Call Slot:*
+${preferredDate ? `${new Date(preferredDate).toLocaleDateString('en-IN', {weekday:'short',day:'2-digit',month:'short'})}` : 'Not specified'}
+${preferredTime ? ` at ${preferredTime}` : ''}
+
+*Customer Requirements:*
+${requirements}
+
+---
+Please review and confirm the appointment via WhatsApp.`;
+
+      // Show preview
+      msgPreview.textContent = message;
+      msgPreview.classList.add('show');
+
+      // Save video-call request to backend (no token required) + local query log
+      try {
+        await api('customer_create_videocall', {
+          custName: name, custPhone: phone,
+          salesPersonId: salesPersonChoice === 'specific' ? specificPersonId : '',
+          salesPersonName: salesPersonText, requirements,
+          preferredDate, preferredTime
+        });
+      } catch (err) { console.warn('Backend videocall save failed, local only:', err); }
+
+      // Log as query so admin-queries.html shows it (same localStorage key)
+      try {
+        const stored = JSON.parse(localStorage.getItem('shibaam_queries') || '[]');
+        stored.unshift({
+          id: 'q' + Date.now(),
+          jobNo: '',
+          customerName: name,
+          customerPhone: phone,
+          message: `Video call request — ${salesPersonText}. Slot: ${preferredDate || 'flexible'} ${preferredTime || ''}. Requirements: ${requirements}`,
+          status: 'OPEN',
+          createdAt: new Date().toISOString(),
+          replies: []
+        });
+        localStorage.setItem('shibaam_queries', JSON.stringify(stored));
+      } catch (e) { console.warn('query log failed', e); }
+
+      // Open WhatsApp after brief delay
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Opening WhatsApp...';
+
+      setTimeout(() => {
+        const shopWhatsApp = '919601879952'; // SHIBAAM shop WhatsApp
+        const url = `https://wa.me/${shopWhatsApp}?text=${encodeURIComponent(message)}`;
+        window.open(url, '_blank');
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Generate WhatsApp Message';
+      }, 500);
+    });
+
+    // Init: local first, then backend sync
+    renderSalesTeam();
+    syncSalesTeamFromBackend();
+
+    // Listen for sales team updates from admin (cross-tab sync)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'shibaam_sales_team') {
+        renderSalesTeam();
+      }
+    });
+  </script>
+</body>
+</html>

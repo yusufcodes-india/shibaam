@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Manage Jobs</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
+
+    .btn-primary{
+      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-secondary{
+      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+
+    .filter-bar{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
+    }
+    .filter-btn{
+      padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;transition:.2s;
+    }
+    .filter-btn:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .filter-btn.active{background:var(--brown);color:#fff;border-color:var(--brown);}
+
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{background:var(--cream);color:var(--brown-dark);border:1px solid var(--line);padding:10px 12px;text-align:left;font-weight:600;font-size:12px;}
+    td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;}
+    tr:hover td{background:#faf8f5;}
+
+    .job-link{color:var(--brown);font-weight:600;text-decoration:underline;cursor:pointer;}
+    .job-link:hover{color:var(--brown-dark);}
+
+    .status-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    }
+    .status-badge.unassigned{background:#fef9e7;color:#9c7a1f;}
+    .status-badge.work{background:#fff3e0;color:#b36b00;}
+    .status-badge.stitching{background:#e8f5e9;color:#2e7d32;}
+    .status-badge.ready{background:#e8f5e9;color:#2e7d32;}
+    .status-badge.delivered{background:#e0e0e0;color:#616161;}
+    .status-badge.cancelled{background:#fce4ec;color:#c62828;}
+
+    .particular-count{color:var(--muted);font-size:12px;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:40px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+    .empty-state .icon svg{width:28px;height:28px}
+
+    /* Job Detail Modal/Section */
+    .job-detail{display:none;}
+    .job-detail.open{display:block;animation:slideDown .3s ease;}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+
+    .detail-header{
+      display:flex;justify-content:space-between;align-items:flex-start;
+      margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--line);
+      flex-wrap:wrap;gap:12px;
+    }
+    .detail-title{font-family:Georgia;font-weight:500;font-size:22px;color:var(--brown-dark);margin:0;}
+    .detail-meta{display:flex;flex-direction:column;gap:4px;text-align:right;}
+    .detail-jobno{font-family:monospace;font-size:13px;color:var(--muted);}
+    .detail-customer{font-weight:600;color:var(--ink);}
+
+    .particulars-grid{display:flex;flex-direction:column;gap:16px;}
+    .particular-card{
+      background:#faf8f5;border:1px solid var(--line);border-radius:16px;padding:20px;
+    }
+    .particular-card.urgent{border-color:#fecaca;background:#fef2f2;}
+    .pc-header{
+      display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px;
+    }
+    .pc-name{font-weight:600;font-size:15px;color:var(--ink);}
+    .pc-category{font-size:10px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:#f3e8de;color:var(--brown);}
+    .pc-urgent{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#fecaca;color:#b3261e;}
+
+    .pc-details{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:16px;}
+
+    .pc-stages{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;
+    }
+    .stage-box{
+      background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;
+      transition:.2s;
+    }
+    .stage-box:hover{border-color:#d8c4b7;}
+    .stage-box.completed{border-color:#a5d6a7;background:#e8f5e9;}
+    .stage-box.current{border-color:#ffb74d;background:#fff3e0;}
+    .stage-box.assigned{border-color:#64b5f6;background:#e3f2fd;}
+
+    .stage-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px;}
+    .stage-status{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+    .stage-worker{font-size:12px;color:var(--muted);margin-bottom:8px;}
+    .stage-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+    .btn-sm{
+      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
+    }
+    .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
+    .btn-sm.primary:hover{background:var(--brown-dark);}
+    .btn-sm.success{background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32;}
+    .btn-sm.success:hover{background:#c8e6c9;}
+    .btn-sm.danger{background:#fef2f2;border-color:#fecaca;color:#b3261e;}
+    .btn-sm.danger:hover{background:#fee2e2;}
+
+    .wa-btn{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;
+      border:1px solid #c8e6c9;background:#e8f5e9;color:#2e7d32;cursor:pointer;transition:.2s;
+    }
+    .wa-btn:hover{background:#c8e6c9;}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;margin-top:20px;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      .detail-meta{text-align:left}
+      .pc-stages{grid-template-columns:1fr}
+      .stage-actions{flex-direction:column}
+      .btn-sm{width:100%}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./admin.html" aria-label="Back to Admin Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Admin • Manage Jobs</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Jobs List -->
+      <div class="card" id="jobsListCard">
+        <div class="card-header">
+          <div>
+            <h1>Manage Jobs</h1>
+            <p>Click any job to view details, assign workers, and track progress</p>
+          </div>
+          <button class="btn-primary" onclick="openNewJobModal()">+ New Job</button>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All Jobs</button>
+          <button class="filter-btn" data-filter="active" onclick="setFilter(this,'active')">Active</button>
+          <button class="filter-btn" data-filter="ready" onclick="setFilter(this,'ready')">Ready</button>
+          <button class="filter-btn" data-filter="delivered" onclick="setFilter(this,'delivered')">Delivered</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="jobsTable">
+            <thead>
+              <tr>
+                <th style="width:120px;">Job No.</th>
+                <th>Customer</th>
+                <th style="width:120px;">Date</th>
+                <th style="width:100px;">Particulars</th>
+                <th style="width:140px;">Status</th>
+                <th style="width:160px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="jobsBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <p>No jobs found. Click <strong>+ New Job</strong> to create one.</p>
+        </div>
+      </div>
+
+      <!-- Job Detail View -->
+      <div class="card job-detail" id="jobDetailCard">
+        <div class="detail-header">
+          <div>
+            <h1 class="detail-title" id="detailJobNo">Job No. H4600</h1>
+            <div class="detail-meta">
+              <span class="detail-customer" id="detailCustomer">Ayesha Patel</span>
+              <span class="detail-jobno" id="detailDate">Ordered: Dec 15, 2024</span>
+            </div>
+          </div>
+          <div class="detail-meta">
+            <span class="status-badge" id="detailStatus">Stitching</span>
+          </div>
+        </div>
+
+        <div class="particulars-grid" id="particularsGrid">
+          <!-- populated by JS -->
+        </div>
+
+        <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-secondary" onclick="closeJobDetail()">← Back to Jobs List</button>
+          <button class="btn-primary" onclick="printJob()">Print Job Card</button>
+        </div>
+      </div>
+
+      <a class="back-link" href="./admin.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Admin Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data - in production, fetch from Apps Script backend
+    const DEFAULT_JOBS = [
+      {
+        jobNo: 'H4600',
+        customerName: 'Ayesha Patel',
+        customerPhone: '9876543210',
+        date: '2024-12-15',
+        status: 'STITCHING',
+        particulars: [
+          { id: 'p1', name: 'Bridal Lehenga', category: 'LADIES', details: 'Maroon velvet, zardosi work, gota patti border', status: 'STITCHING_ASSIGNED', worker: 'Fatima Sheikh', urgent: false },
+          { id: 'p2', name: 'Dupatta', category: 'LADIES', details: 'Net fabric, sequin embroidery', status: 'WORK_ARRIVED', worker: 'Ahmed Raza', urgent: false }
+        ]
+      },
+      {
+        jobNo: 'H4601',
+        customerName: 'Rahul Sharma',
+        customerPhone: '9876543211',
+        date: '2024-12-10',
+        status: 'READY',
+        particulars: [
+          { id: 'p3', name: 'Sherwani', category: 'GENTS', details: 'Ivory silk, gold thread embroidery', status: 'COMPLETED', worker: 'Huzaifa Tarwala', urgent: false },
+          { id: 'p4', name: 'Churidar', category: 'GENTS', details: 'Matching ivory cotton', status: 'COMPLETED', worker: 'Huzaifa Tarwala', urgent: false }
+        ]
+      },
+      {
+        jobNo: 'H4602',
+        customerName: 'Fatima Khan',
+        customerPhone: '9876543212',
+        date: '2024-12-20',
+        status: 'WORK',
+        particulars: [
+          { id: 'p5', name: 'Anarkali Suit', category: 'LADIES', details: 'Emerald green georgette, mirror work', status: 'WORK_ASSIGNED', worker: 'Mohammed Ali', urgent: true }
+        ]
+      },
+      {
+        jobNo: 'H4603',
+        customerName: 'Priya Desai',
+        customerPhone: '9876543213',
+        date: '2024-12-22',
+        status: 'UNASSIGNED',
+        particulars: [
+          { id: 'p6', name: 'Saree Blouse', category: 'LADIES', details: 'Red silk, back design as per image', status: 'UNASSIGNED', worker: null, urgent: false }
+        ]
+      }
+    ];
+
+    function loadJobs() {
+      try {
+        const stored = localStorage.getItem('shibaam_jobs');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length) return parsed;
+        }
+      } catch (e) {}
+      return DEFAULT_JOBS.slice();
+    }
+    function persistJobs() {
+      try { localStorage.setItem('shibaam_jobs', JSON.stringify(jobsData)); } catch (e) {}
+    }
+    let jobsData = loadJobs();
+
+    let currentFilter = 'all';
+    let selectedJob = null;
+
+    const jobsBody = document.getElementById('jobsBody');
+    const emptyState = document.getElementById('emptyState');
+    const jobsListCard = document.getElementById('jobsListCard');
+    const jobDetailCard = document.getElementById('jobDetailCard');
+    const particularsGrid = document.getElementById('particularsGrid');
+
+    // Filter buttons
+    function setFilter(btn, filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderJobsList();
+    }
+
+    function getFilteredJobs() {
+      if (currentFilter === 'all') return jobsData;
+      if (currentFilter === 'active') return jobsData.filter(j => ['UNASSIGNED','WORK','STITCHING'].includes(j.status));
+      if (currentFilter === 'ready') return jobsData.filter(j => j.status === 'READY');
+      if (currentFilter === 'delivered') return jobsData.filter(j => j.status === 'DELIVERED');
+      return jobsData;
+    }
+
+    function getStatusClass(status) {
+      const map = {
+        'UNASSIGNED': 'unassigned',
+        'WORK': 'work', 'WORK_ASSIGNED': 'work', 'WORK_ARRIVED': 'work',
+        'STITCHING': 'stitching', 'STITCHING_ASSIGNED': 'stitching', 'STITCHING_ARRIVED': 'stitching',
+        'READY': 'ready', 'COMPLETED': 'ready',
+        'DELIVERED': 'delivered',
+        'CANCELLED': 'cancelled'
+      };
+      return map[status] || 'unassigned';
+    }
+
+    function formatStatus(status) {
+      const map = {
+        'UNASSIGNED': 'Order Received',
+        'WORK_ASSIGNED': 'Work Assigned',
+        'WORK_ARRIVED': 'Work Done',
+        'STITCHING_ASSIGNED': 'Stitching Assigned',
+        'STITCHING_ARRIVED': 'Stitching Done',
+        'COMPLETED': 'Ready',
+        'READY': 'Ready for Pickup',
+        'DELIVERED': 'Delivered',
+        'CANCELLED': 'Cancelled'
+      };
+      return map[status] || status;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    function renderJobsList() {
+      const jobs = getFilteredJobs();
+      if (jobs.length === 0) {
+        jobsBody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+      jobsBody.innerHTML = jobs.map(job => `
+        <tr>
+          <td><span class="job-link" onclick="openJobDetail('${escapeHtml(job.jobNo)}')">${escapeHtml(job.jobNo)}</span></td>
+          <td>${escapeHtml(job.customerName)}</td>
+          <td>${formatDate(job.date)}</td>
+          <td><span class="particular-count">${job.particulars.length} item${job.particulars.length !== 1 ? 's' : ''}</span></td>
+          <td><span class="status-badge ${getStatusClass(job.status)}">${formatStatus(job.status)}</span></td>
+          <td>
+            <button class="btn-sm primary" onclick="openJobDetail('${escapeHtml(job.jobNo)}')">View</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openJobDetail(jobNo) {
+      const job = jobsData.find(j => j.jobNo === jobNo);
+      if (!job) return;
+      selectedJob = job;
+
+      document.getElementById('detailJobNo').textContent = `Job No. ${job.jobNo}`;
+      document.getElementById('detailCustomer').textContent = job.customerName;
+      document.getElementById('detailDate').textContent = `Ordered: ${formatDate(job.date)} • ${job.particulars.length} item${job.particulars.length !== 1 ? 's' : ''}`;
+      document.getElementById('detailStatus').textContent = formatStatus(job.status);
+      document.getElementById('detailStatus').className = `status-badge ${getStatusClass(job.status)}`;
+
+      renderParticulars(job.particulars);
+
+      jobsListCard.style.display = 'none';
+      jobDetailCard.classList.add('open');
+    }
+
+    function closeJobDetail() {
+      jobDetailCard.classList.remove('open');
+      jobsListCard.style.display = 'block';
+      selectedJob = null;
+    }
+
+    function renderParticulars(particulars) {
+      particularsGrid.innerHTML = particulars.map(p => `
+        <div class="particular-card ${p.urgent ? 'urgent' : ''}" data-id="${p.id}">
+          <div class="pc-header">
+            <div>
+              <div class="pc-name">${escapeHtml(p.name)}</div>
+              <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+                <span class="pc-category">${p.category}</span>
+                ${p.urgent ? '<span class="pc-urgent">Urgent</span>' : ''}
+              </div>
+            </div>
+          </div>
+          ${p.details ? `<div class="pc-details">${escapeHtml(p.details)}</div>` : ''}
+          <div class="pc-stages">
+            ${renderStageBox('WORK', p, p.category === 'GENTS')}
+            ${p.category === 'GENTS' ? renderStageBox('STITCHING', p, true) : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderStageBox(stage, p, isGents) {
+      const isStitching = stage === 'STITCHING';
+      const stageKey = isStitching ? 'stitchStage' : 'workStage';
+      const stageStatus = p.status;
+
+      // Determine stage state
+      let state = 'pending';
+      let statusText = 'Not Started';
+      let workerName = null;
+
+      if (isStitching) {
+        if (['STITCHING_ASSIGNED','STITCHING_ARRIVED','COMPLETED'].includes(stageStatus)) {
+          state = stageStatus === 'COMPLETED' ? 'completed' : 'current';
+          statusText = stageStatus === 'STITCHING_ASSIGNED' ? 'Assigned' : (stageStatus === 'STITCHING_ARRIVED' ? 'Arrived' : 'Completed');
+        }
+      } else {
+        if (['WORK_ASSIGNED','WORK_ARRIVED','STITCHING_ASSIGNED','STITCHING_ARRIVED','COMPLETED'].includes(stageStatus)) {
+          state = ['COMPLETED','STITCHING_ARRIVED'].includes(stageStatus) ? 'completed' : 'current';
+          statusText = stageStatus === 'WORK_ASSIGNED' ? 'Assigned' : (stageStatus === 'WORK_ARRIVED' ? 'Arrived' : (stageStatus === 'STITCHING_ASSIGNED' ? 'Stitching Started' : 'Completed'));
+        }
+      }
+
+      if (p.worker) workerName = p.worker;
+
+      const stageClass = state === 'completed' ? 'completed' : (state === 'current' ? 'current' : (workerName ? 'assigned' : ''));
+
+      return `
+        <div class="stage-box ${stageClass}">
+          <div class="stage-label">${isStitching ? 'Stitching' : 'Work'}</div>
+          <div class="stage-status">${statusText}</div>
+          ${workerName ? `<div class="stage-worker">Worker: ${escapeHtml(workerName)}</div>` : ''}
+          <div class="stage-actions">
+            ${getStageActions(stage, p, state)}
+          </div>
+        </div>
+      `;
+    }
+
+    function getStageActions(stage, p, state) {
+      const isStitching = stage === 'STITCHING';
+      const stageStatus = p.status;
+
+      if (state === 'completed') {
+        return `<button class="btn-sm danger" onclick="resetStage('${p.id}','${stage}')">Reset</button>`;
+      }
+
+      if (state === 'current') {
+        if (stageStatus === 'WORK_ASSIGNED' || stageStatus === 'STITCHING_ASSIGNED') {
+          return `
+            <button class="btn-sm success" onclick="markArrived('${p.id}','${stage}')">Mark Arrived</button>
+            <button class="btn-sm danger" onclick="resetStage('${p.id}','${stage}')">Reset</button>
+          `;
+        }
+        if (stageStatus === 'WORK_ARRIVED' || stageStatus === 'STITCHING_ARRIVED') {
+          return `
+            <button class="btn-sm primary" onclick="markComplete('${p.id}','${stage}')">Mark Complete</button>
+            <button class="btn-sm danger" onclick="undoArrived('${p.id}','${stage}')">Undo Arrival</button>
+          `;
+        }
+      }
+
+      // Pending / Unassigned
+      return `
+        <button class="btn-sm primary" onclick="assignWorker('${p.id}','${stage}')">Assign Worker</button>
+        <button class="btn-sm" onclick="sendStageWA('${p.id}','${stage}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          WhatsApp
+        </button>
+      `;
+    }
+
+    // Backend (Apps Script) — sync on init, write-through on mutations, local fallback
+    function backendCall(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
+    }
+    async function syncJobsFromBackend() {
+      try {
+        const token = getAdminToken();
+        if (!token) return;
+        const list = await api('admin_list_jobs', { token, filter: 'all' });
+        if (!Array.isArray(list) || !list.length) return;
+        const full = [];
+        for (const j of list) {
+          try {
+            const d = await api('admin_get_job', { token, jobNo: j.jobNo });
+            full.push({
+              id: d.job.id || d.job.jobNo, jobNo: d.job.jobNo,
+              customerName: d.job.customerName, customerPhone: d.job.customerPhone,
+              date: d.job.date, status: d.job.status, particulars: d.particulars || []
+            });
+          } catch (e) { console.warn('detail fetch failed for', j.jobNo, e); }
+        }
+        if (full.length) {
+          jobsData = full;
+          persistJobs();
+          renderJobsList();
+          if (selectedJob) {
+            const still = jobsData.find(x => x.jobNo === selectedJob.jobNo);
+            if (still) { selectedJob = still; renderParticulars(still.particulars); }
+          }
+        }
+      } catch (err) { console.warn('Backend sync failed, local only:', err); }
+    }
+
+    // Action handlers (demo - in production call Apps Script)
+    function assignWorker(particularId, stage) {
+      const workers = [
+        { name: 'Huzaifa Tarwala', category: 'GENTS' },
+        { name: 'Ahmed Raza', category: 'LADIES' },
+        { name: 'Fatima Sheikh', category: 'LADIES' },
+        { name: 'Mohammed Ali', category: 'GENTS' }
+      ];
+      const name = prompt(`Assign ${stage} worker:\n${workers.map((w,i) => `${i+1}. ${w.name} (${w.category})`).join('\n')}\nEnter number:`);
+      if (!name) return;
+      const idx = parseInt(name) - 1;
+      if (idx >= 0 && idx < workers.length) {
+        const job = selectedJob;
+        const p = job.particulars.find(p => p.id === particularId);
+        if (p) {
+          p.worker = workers[idx].name;
+          if (stage === 'WORK') p.status = 'WORK_ASSIGNED';
+          else if (stage === 'STITCHING') p.status = 'STITCHING_ASSIGNED';
+          backendCall('admin_assign_worker', { jobNo: job.jobNo, particularId, stage, worker: workers[idx].name });
+          updateJobStatus(job);
+          renderParticulars(job.particulars);
+          renderJobsList();
+        }
+      }
+    }
+
+    function markArrived(particularId, stage) {
+      const job = selectedJob;
+      const p = job.particulars.find(p => p.id === particularId);
+      if (!p) return;
+      if (stage === 'WORK') p.status = 'WORK_ARRIVED';
+      else if (stage === 'STITCHING') p.status = 'STITCHING_ARRIVED';
+      backendCall('admin_mark_arrived', { jobNo: job.jobNo, particularId, stage });
+      updateJobStatus(job);
+      renderParticulars(job.particulars);
+      renderJobsList();
+    }
+
+    function undoArrived(particularId, stage) {
+      const job = selectedJob;
+      const p = job.particulars.find(p => p.id === particularId);
+      if (!p) return;
+      if (stage === 'WORK') p.status = 'WORK_ASSIGNED';
+      else if (stage === 'STITCHING') p.status = 'STITCHING_ASSIGNED';
+      backendCall('admin_reset_stage', { jobNo: job.jobNo, particularId, stage });
+      updateJobStatus(job);
+      renderParticulars(job.particulars);
+      renderJobsList();
+    }
+
+    function markComplete(particularId, stage) {
+      const job = selectedJob;
+      const p = job.particulars.find(p => p.id === particularId);
+      if (!p) return;
+      if (stage === 'WORK') {
+        if (p.category === 'GENTS') p.status = 'STITCHING_ASSIGNED';
+        else p.status = 'COMPLETED';
+      } else if (stage === 'STITCHING') {
+        p.status = 'COMPLETED';
+      }
+      backendCall('admin_complete_particular', { jobNo: job.jobNo, particularId, stage });
+      updateJobStatus(job);
+      renderParticulars(job.particulars);
+      renderJobsList();
+    }
+
+    function resetStage(particularId, stage) {
+      if (!confirm(`Reset ${stage} stage for this particular?`)) return;
+      const job = selectedJob;
+      const p = job.particulars.find(p => p.id === particularId);
+      if (!p) return;
+      if (stage === 'WORK') {
+        p.status = 'UNASSIGNED';
+        p.worker = null;
+      } else if (stage === 'STITCHING') {
+        p.status = p.status === 'COMPLETED' ? 'WORK_ARRIVED' : 'UNASSIGNED';
+        p.worker = null;
+      }
+      backendCall('admin_reset_stage', { jobNo: job.jobNo, particularId, stage });
+      updateJobStatus(job);
+      renderParticulars(job.particulars);
+      renderJobsList();
+    }
+
+    function updateJobStatus(job) {
+      const statuses = job.particulars.map(p => p.status);
+      if (statuses.every(s => s === 'COMPLETED')) job.status = 'READY';
+      else if (statuses.some(s => ['STITCHING_ASSIGNED','STITCHING_ARRIVED'].includes(s))) job.status = 'STITCHING';
+      else if (statuses.some(s => ['WORK_ASSIGNED','WORK_ARRIVED'].includes(s))) job.status = 'WORK';
+      else job.status = 'UNASSIGNED';
+      persistJobs();
+    }
+
+    function sendStageWA(particularId, stage) {
+      const job = selectedJob;
+      const p = job.particulars.find(p => p.id === particularId);
+      if (!p) return;
+
+      const message = `Hello SHIBAAM Team,
+
+*Job Update Request*
+• Job No: ${job.jobNo}
+• Customer: ${job.customerName}
+• Particular: ${p.name} (${p.category})
+• Stage: ${stage}
+• Current Status: ${p.status}
+• Details: ${p.details || 'N/A'}
+
+Please provide an update on this ${stage.toLowerCase()} stage.`;
+
+      window.open(`https://wa.me/919601879952?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function openNewJobModal() {
+      window.location.href = './admin-new-job.html';
+    }
+
+    function printJob() {
+      window.print();
+    }
+
+    // Init: local first, then backend sync
+    renderJobsList();
+    syncJobsFromBackend();
+
+    // Listen for new job from admin-new-job.html
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'shibaam_jobs') {
+        try {
+          jobsData = JSON.parse(e.newValue);
+          renderJobsList();
+        } catch {}
+      }
+    });
+  </script>
+</body>
+</html>

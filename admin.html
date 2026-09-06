@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Admin Portal</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:28px 0 18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:13px;
+    }
+
+    .brand-mark{
+      width:46px;
+      height:46px;
+      border:1.5px solid var(--brown);
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:var(--brown);
+      font-family:Georgia,serif;
+      font-size:20px;
+      letter-spacing:-1px;
+      background:rgba(255,253,249,.7);
+    }
+
+    .brand-logo{width:58px;height:58px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-size:19px!important;letter-spacing:1px!important;line-height:1.2}
+    .brand-byline{font-size:10px;color:var(--brown-soft);letter-spacing:1.2px;margin-top:1px}
+    .brand-sub{letter-spacing:1px}
+    @media(max-width:520px){.brand-logo{width:46px;height:46px}.brand-name{font-size:14px!important;letter-spacing:.7px!important}.brand-byline{font-size:9px}.brand-sub{font-size:8px;letter-spacing:.7px}}
+    .brand-sub{
+      font-size:10px;
+      letter-spacing:2px;
+      color:var(--muted);
+      text-transform:uppercase;
+      margin-top:2px;
+    }
+
+    .secure{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .secure-dot{
+      width:7px;height:7px;border-radius:50%;
+      background:#5e8a69;
+      box-shadow:0 0 0 4px rgba(94,138,105,.12);
+    }
+
+    main{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:44px 0 70px;
+    }
+
+    .hero{
+      text-align:center;
+      max-width:720px;
+      margin:0 auto 42px;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:var(--brown);
+      font-size:11px;
+      font-weight:700;
+      letter-spacing:2.5px;
+      text-transform:uppercase;
+      margin-bottom:16px;
+    }
+
+    .eyebrow:before,.eyebrow:after{
+      content:"";
+      width:28px;height:1px;background:#c9a494;
+    }
+
+    h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:clamp(38px,6vw,64px);
+      line-height:1.02;
+      letter-spacing:-1.8px;
+      color:var(--brown-dark);
+      margin:0 0 16px;
+    }
+
+    .hero p{
+      max-width:580px;
+      margin:auto;
+      color:var(--muted);
+      line-height:1.7;
+      font-size:15px;
+    }
+
+    .portals{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:18px;
+      max-width:1080px;
+      width:100%;
+      margin:auto;
+    }
+
+    .portal{
+      position:relative;
+      overflow:hidden;
+      background:rgba(255,253,249,.88);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:30px;
+      min-height:310px;
+      display:flex;
+      flex-direction:column;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+
+    .portal:before{
+      content:"";
+      position:absolute;
+      width:150px;height:150px;
+      border-radius:50%;
+      background:rgba(139,74,54,.055);
+      right:-65px;top:-65px;
+    }
+
+    .portal:hover{
+      transform:translateY(-6px);
+      box-shadow:var(--shadow);
+      border-color:#d8c4b7;
+    }
+
+    .icon{
+      width:52px;height:52px;
+      border-radius:16px;
+      background:#f3e8de;
+      color:var(--brown);
+      display:grid;
+      place-items:center;
+      margin-bottom:24px;
+      position:relative;
+    }
+
+    .icon svg{width:25px;height:25px}
+
+    .portal-tag{
+      color:var(--brown-soft);
+      text-transform:uppercase;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:1.7px;
+      margin-bottom:8px;
+    }
+
+    .portal h2{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:28px;
+      color:var(--brown-dark);
+      margin:0 0 9px;
+    }
+
+    .portal p{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.65;
+      margin:0;
+      max-width:280px;
+    }
+
+    .login-key{
+      margin-top:16px;
+      color:#76675f;
+      font-size:11px;
+    }
+
+    .login-key strong{color:var(--brown-dark)}
+
+    .enter{
+      margin-top:auto;
+      padding-top:25px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:var(--brown);
+      font-size:13px;
+      font-weight:750;
+    }
+
+    .arrow{
+      width:36px;height:36px;
+      border:1px solid #ddcabe;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      transition:.2s ease;
+    }
+
+    .portal:hover .arrow{
+      background:var(--brown);
+      color:white;
+      border-color:var(--brown);
+      transform:translateX(3px);
+    }
+
+    .help{
+      margin:30px auto 0;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .help a{
+      color:var(--brown);
+      font-weight:700;
+    }
+
+    footer{
+      border-top:1px solid rgba(190,165,148,.35);
+      padding:18px 0 25px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:#95877e;
+      font-size:10px;
+      letter-spacing:.5px;
+    }
+
+    .footer-brand{
+      color:var(--brown);
+      letter-spacing:1.5px;
+      font-weight:700;
+    }
+
+    @media(max-width:850px){
+      .portals{grid-template-columns:repeat(2,1fr)}
+      .portal{min-height:230px;padding:25px}
+      .portal p{max-width:600px}
+      .hero{margin-bottom:28px}
+      main{padding-top:25px}
+    }
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      header{padding-top:20px}
+      .brand-name{font-size:20px}
+      .brand-mark{width:40px;height:40px;font-size:18px}
+      .secure{font-size:10px}
+      h1{font-size:42px}
+      .hero p{font-size:13px}
+      .portals{grid-template-columns:1fr}
+      .portal{border-radius:20px}
+      footer{flex-direction:column;gap:8px;text-align:center}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./index.html" aria-label="SHIBAAM by Huzaifa Tarwala, Surat">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">by Huzaifa Tarwala</div>
+          <div class="brand-sub">Surat · Since 1990 · Committed towards the Quality</div>
+        </div>
+      </a>
+
+      <div class="secure">
+        <span class="secure-dot"></span>
+        Secure Portal
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Administration</div>
+        <h1>Admin Panel</h1>
+        <p>
+          Manage all aspects of SHIBAAM operations — jobs, customers, workers, assignments, queries, measurements and delivery.
+        </p>
+      </section>
+
+      <section class="portals" aria-label="Admin modules">
+
+        <!-- MANAGE JOBS -->
+        <a class="portal" href="./admin-jobs.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Core Operations</div>
+          <h2>Manage Jobs</h2>
+          <p>Create, edit, and track all customer jobs from order to delivery.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>Open Jobs</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- CUSTOMERS -->
+        <a class="portal" href="./admin-customers.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Core Operations</div>
+          <h2>Customers</h2>
+          <p>View customer profiles, order history, and contact details.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>View Customers</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- NEW JOB -->
+        <a class="portal" href="./admin-new-job.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Core Operations</div>
+          <h2>New Job</h2>
+          <p>Create new customer orders with particulars, pricing, and WhatsApp notifications.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>Create Job</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- ASSIGNMENTS -->
+        <a class="portal" href="./admin-assignments.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Workforce</div>
+          <h2>Assignments</h2>
+          <p>Assign work & stitching stages to workers, track progress.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>View Assignments</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- WORKERS -->
+        <a class="portal" href="./admin-workers.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M14 4l6 6"/>
+              <path d="M16 2l6 6"/>
+              <path d="M4 20l7-7"/>
+              <path d="M3 21l3-1 13-13-3-3L3 17l-1 3 1 1z"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Workforce</div>
+          <h2>Workers</h2>
+          <p>Manage worker profiles, categories, assignments, and availability.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>Manage Workers</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- QUERIES -->
+        <a class="portal" href="./admin-queries.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Communication</div>
+          <h2>Queries</h2>
+          <p>Handle customer queries, track status, and send WhatsApp replies.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>Open Queries</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- MEASUREMENTS -->
+        <a class="portal" href="./admin-measurements.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M3 3h18v18H3z"/>
+              <path d="M12 3v18"/>
+              <path d="M3 12h18"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Operations</div>
+          <h2>Measurements</h2>
+          <p>Record and manage customer measurements with Drive links.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>Manage Measurements</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- DELIVERY -->
+        <a class="portal" href="./admin-delivery.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Operations</div>
+          <h2>Delivery</h2>
+          <p>Track delivered orders, customer receipts, and returns.</p>
+          <div class="login-key">Access: <strong>All Admins</strong></div>
+          <div class="enter"><span>View Delivery</span><span class="arrow">→</span></div>
+        </a>
+
+        <!-- SETTINGS -->
+        <a class="portal" href="./admin-settings.html">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </div>
+          <div class="portal-tag">Configuration</div>
+          <h2>Settings</h2>
+          <p>Configure shop details, WhatsApp numbers, staff, and system settings.</p>
+          <div class="login-key">Access: <strong>Super Admin</strong></div>
+          <div class="enter"><span>Open Settings</span><span class="arrow">→</span></div>
+        </a>
+
+      </section>
+
+      <div class="help">
+        Need help? <a href="https://wa.me/919601879952" target="_blank" rel="noopener">Contact SHIBAAM on WhatsApp</a>
+      </div>
+    </main>
+
+    <footer>
+      <span class="footer-brand">SHIBAAM</span>
+      <span>by Huzaifa Tarwala · Since 1990 · Committed towards the Quality · Surat</span>
+    </footer>
+
+  </div>
+</body>
+</html>

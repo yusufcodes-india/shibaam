@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — My Orders</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(720px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      text-align:center;
+      margin-bottom:24px;
+    }
+
+    .card-header .icon{
+      width:48px;height:48px;
+      border-radius:14px;
+      background:#f3e8de;
+      color:var(--brown);
+      display:grid;
+      place-items:center;
+      margin:0 auto 12px;
+    }
+    .card-header .icon svg{width:24px;height:24px}
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0 0 6px;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:0;}
+
+    .form-group{margin-bottom:20px;}
+    .form-group label{
+      display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;
+    }
+    .form-group input{
+      width:100%;border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:14px 16px;color:var(--ink);outline:none;font-size:15px;transition:.2s;font-family:inherit;
+    }
+    .form-group input:focus{
+      border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);
+    }
+
+    .btn-primary{
+      width:100%;border:0;border-radius:12px;padding:14px;font-weight:800;font-size:14px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+
+    .btn-secondary{
+      width:100%;border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+      border-radius:12px;padding:12px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;margin-top:12px;
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+
+    .error-msg{
+      background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;
+      padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:20px;display:none;
+    }
+    .error-msg.show{display:block;}
+
+    .orders-list{display:flex;flex-direction:column;gap:16px;}
+    .order-card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .order-header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 20px;background:#faf8f5;border-bottom:1px solid var(--line);
+      flex-wrap:wrap;gap:12px;
+    }
+    .order-meta{display:flex;flex-direction:column;gap:4px;}
+    .order-jobno{font-family:Georgia;font-weight:600;font-size:16px;color:var(--brown-dark);}
+    .order-date{font-size:12px;color:var(--muted);}
+    .order-status{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;
+    }
+    .order-status.unassigned{background:#fef9e7;color:#9c7a1f;}
+    .order-status.work{background:#fff3e0;color:#b36b00;}
+    .order-status.stitching{background:#e8f5e9;color:#2e7d32;}
+    .order-status.ready{background:#e8f5e9;color:#2e7d32;}
+    .order-status.delivered{background:#e0e0e0;color:#616161;}
+
+    .order-body{padding:0 20px;}
+    .particular-item{
+      padding:16px 0;border-bottom:1px dashed var(--line);
+    }
+    .particular-item:last-child{border-bottom:none;}
+    .particular-header{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+      margin-bottom:8px;
+    }
+    .particular-name{font-weight:600;color:var(--ink);font-size:14px;}
+    .particular-category{
+      font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+      padding:2px 8px;border-radius:6px;background:#f3e8de;color:var(--brown);
+    }
+    .particular-details{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:10px;}
+    .particular-progress{display:flex;gap:6px;flex-wrap:wrap;}
+    .progress-step{
+      font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;
+      background:#e0e0e0;color:#616161;
+    }
+    .progress-step.active{background:var(--brown);color:#fff;}
+    .progress-step.completed{background:#2e7d32;color:#fff;}
+    .progress-step.current{background:#b36b00;color:#fff;}
+
+    .order-actions{
+      display:flex;gap:10px;padding:16px 20px;background:#faf8f5;border-top:1px solid var(--line);
+      flex-wrap:wrap;
+    }
+    .btn-wa{
+      flex:1;min-width:140px;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      padding:10px 16px;border-radius:10px;font-size:12px;font-weight:700;
+      border:1px solid #c8e6c9;background:#e8f5e9;color:#2e7d32;cursor:pointer;transition:.2s;
+    }
+    .btn-wa:hover{background:#c8e6c9;}
+    .btn-wa svg{width:18px;height:18px;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:40px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+    .empty-state .icon svg{width:28px;height:28px}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;margin-top:8px;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    .hidden{display:none;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,720px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      .order-header{flex-direction:column;align-items:flex-start}
+      .order-actions{flex-direction:column}
+      .btn-wa{width:100%}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./customer.html" aria-label="Back to Customer Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Surat · Since 1990</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Login Card -->
+      <div class="card" id="loginCard">
+        <div class="card-header">
+          <div class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path d="M20 21a8 8 0 0 0-16 0"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <h1>My Orders</h1>
+          <p>Enter your Job Number to track your order progress</p>
+        </div>
+
+        <div class="error-msg" id="errorMsg" role="alert"></div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="jobNo">Job Number / Key License</label>
+            <input type="text" id="jobNo" name="jobNo" placeholder="e.g. H4600" autocomplete="off" required>
+          </div>
+          <button type="submit" class="btn-primary" id="submitBtn">View My Orders</button>
+        </form>
+
+        <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:16px;">
+          Don't have a Job No.? <a href="./customer-shop-video.html" style="color:var(--brown);font-weight:600;">Start New Shopping</a>
+        </p>
+      </div>
+
+      <!-- Orders Display Card (hidden initially) -->
+      <div class="card hidden" id="ordersCard">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div>
+              <h1 style="margin:0;font-size:20px;">My Orders</h1>
+              <p style="margin:4px 0 0;color:var(--muted);font-size:13px;" id="customerNameDisplay"></p>
+            </div>
+            <button class="btn-secondary" id="logoutBtn" style="width:auto;padding:8px 16px;font-size:12px;">Logout</button>
+          </div>
+        </div>
+
+        <div class="orders-list" id="ordersList">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <a class="back-link" href="./customer.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Customer Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    function getCustomerToken() { try { return sessionStorage.getItem('shibaam_customer_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data - in production, fetch from Apps Script backend
+    const DEMO_ORDERS = {
+      'H4600': {
+        customerName: 'Ayesha Patel',
+        phone: '9876543210',
+        orders: [
+          {
+            jobNo: 'H4600',
+            date: '2024-12-15',
+            status: 'STITCHING',
+            particulars: [
+              { name: 'Bridal Lehenga', category: 'LADIES', details: 'Maroon velvet, zardosi work, gota patti border', status: 'STITCHING_ASSIGNED' },
+              { name: 'Dupatta', category: 'LADIES', details: 'Net fabric, sequin embroidery', status: 'WORK_ARRIVED' }
+            ]
+          }
+        ]
+      },
+      'H4601': {
+        customerName: 'Rahul Sharma',
+        phone: '9876543211',
+        orders: [
+          {
+            jobNo: 'H4601',
+            date: '2024-12-10',
+            status: 'READY',
+            particulars: [
+              { name: 'Sherwani', category: 'GENTS', details: 'Ivory silk, gold thread embroidery', status: 'COMPLETED' },
+              { name: 'Churidar', category: 'GENTS', details: 'Matching ivory cotton', status: 'COMPLETED' }
+            ]
+          }
+        ]
+      },
+      'H4602': {
+        customerName: 'Fatima Khan',
+        phone: '9876543212',
+        orders: [
+          {
+            jobNo: 'H4602',
+            date: '2024-12-20',
+            status: 'WORK',
+            particulars: [
+              { name: 'Anarkali Suit', category: 'LADIES', details: 'Emerald green georgette, mirror work', status: 'WORK_ASSIGNED' }
+            ]
+          }
+        ]
+      }
+    };
+
+    const loginCard = document.getElementById('loginCard');
+    const ordersCard = document.getElementById('ordersCard');
+    const loginForm = document.getElementById('loginForm');
+    const jobNoInput = document.getElementById('jobNo');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorMsg = document.getElementById('errorMsg');
+    const ordersList = document.getElementById('ordersList');
+    const customerNameDisplay = document.getElementById('customerNameDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Check for existing session: gate on token OR saved job, server first
+    const savedJobNo = sessionStorage.getItem('shibaam_customer_jobno');
+    (async function restoreSession() {
+      const token = getCustomerToken();
+      if (!token && !savedJobNo) return;
+      if (token) {
+        try {
+          await showOrdersServer();
+          return;
+        } catch (e) { console.warn('Backend session failed, local fallback:', e); }
+      }
+      // DEMO_ORDERS only as catch fallback
+      if (savedJobNo && DEMO_ORDERS[savedJobNo]) {
+        showOrders(savedJobNo);
+      } else if (savedJobNo) {
+        // Real session (e.g. SHBM-4605) but backend unreachable: prefill for one-tap retry
+        jobNoInput.value = savedJobNo;
+        showError('Session found for ' + savedJobNo + ' — could not reach server. Tap View My Orders to retry.');
+      }
+    })();
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const jobNo = jobNoInput.value.trim().toUpperCase();
+      if (!jobNo) {
+        showError('Please enter your Job Number');
+        return;
+      }
+      if (!/^(H\d{4}|SHBM-\d{4})$/.test(jobNo)) {
+        showError('Enter Job No. as H#### or SHBM-#### (e.g. H4600).');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'View My Orders';
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Checking...';
+      errorMsg.classList.remove('show');
+
+      // Server-first login (Apps Script), DEMO_ORDERS fallback offline
+      try {
+        const res = await api('login_customer', { jobNo });
+        sessionStorage.setItem('shibaam_customer_token', res.token);
+        sessionStorage.setItem('shibaam_customer_jobno', jobNo);
+        await showOrdersServer();
+      } catch (err) {
+        console.warn('Backend login failed, local fallback:', err);
+        if (DEMO_ORDERS[jobNo]) {
+          sessionStorage.setItem('shibaam_customer_jobno', jobNo);
+          showOrders(jobNo);
+        } else {
+          showError('Invalid Job Number. Please check and try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'View My Orders';
+        }
+      }
+    });
+
+    function showError(message) {
+      errorMsg.textContent = message;
+      errorMsg.classList.add('show');
+      jobNoInput.focus();
+    }
+
+    function showOrders(jobNo) {
+      const data = DEMO_ORDERS[jobNo];
+      customerNameDisplay.textContent = data.customerName;
+      loginCard.classList.add('hidden');
+      ordersCard.classList.remove('hidden');
+      renderOrders(data.orders, data);
+    }
+
+    async function showOrdersServer() {
+      const token = getCustomerToken();
+      const orders = await api('customer_get_orders', { token });
+      const name = orders.length ? orders[0].customerName : '';
+      customerNameDisplay.textContent = name;
+      loginCard.classList.add('hidden');
+      ordersCard.classList.remove('hidden');
+      renderOrders(orders, { customerName: name, phone: '' });
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'View My Orders';
+    }
+
+    let renderedOrders = {};
+    function renderOrders(orders, customer) {
+      renderedOrders = {};
+      orders.forEach(o => { renderedOrders[o.jobNo] = { order: o, customer }; });
+      if (orders.length === 0) {
+        ordersList.innerHTML = `
+          <div class="empty-state">
+            <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <p>No orders found for this Job Number.</p>
+          </div>`;
+        return;
+      }
+
+      ordersList.innerHTML = orders.map(order => `
+        <div class="order-card">
+          <div class="order-header">
+            <div class="order-meta">
+              <span class="order-jobno">Job No. ${escapeHtml(order.jobNo)}</span>
+              <span class="order-date">Ordered: ${formatDate(order.date)}</span>
+            </div>
+            <span class="order-status ${getStatusClass(order.status)}">${formatStatus(order.status)}</span>
+          </div>
+          <div class="order-body">
+            ${order.particulars.map(p => `
+              <div class="particular-item">
+                <div class="particular-header">
+                  <span class="particular-name">${escapeHtml(p.name)}</span>
+                  <span class="particular-category">${p.category}</span>
+                </div>
+                ${p.details ? `<div class="particular-details">${escapeHtml(p.details)}</div>` : ''}
+                <div class="particular-progress">
+                  ${renderProgressSteps(p.status, p.category)}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="order-actions">
+            <button class="btn-wa" data-wa-order="${escapeHtml(order.jobNo)}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              Message Shop
+            </button>
+            <button class="btn-wa" style="background:#fff3e0;border-color:#ffcc80;color:#b36b00;" data-wa-status="${escapeHtml(order.jobNo)}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Ask About Status
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderProgressSteps(particularStatus, category) {
+      const isGents = category === 'GENTS';
+      const steps = isGents
+        ? ['Order Received', 'Work', 'Stitching', 'Ready']
+        : ['Order Received', 'Work', 'Ready'];
+
+      const statusMap = isGents
+        ? { UNASSIGNED: 0, WORK_ASSIGNED: 0, WORK_ARRIVED: 1, STITCHING_ASSIGNED: 1, STITCHING_ARRIVED: 2, COMPLETED: 3 }
+        : { UNASSIGNED: 0, WORK_ASSIGNED: 0, WORK_ARRIVED: 1, COMPLETED: 2 };
+
+      const current = statusMap[particularStatus] !== undefined ? statusMap[particularStatus] : 0;
+
+      return steps.map((step, i) => {
+        let cls = 'progress-step';
+        if (i < current) cls += ' completed';
+        else if (i === current) cls += ' current';
+        else if (i === current - 1) cls += ' active';
+        return `<span class="${cls}">${step}</span>`;
+      }).join('');
+    }
+
+    function getStatusClass(status) {
+      const map = {
+        'UNASSIGNED': 'unassigned',
+        'WORK': 'work',
+        'WORK_ASSIGNED': 'work',
+        'WORK_ARRIVED': 'work',
+        'STITCHING': 'stitching',
+        'STITCHING_ASSIGNED': 'stitching',
+        'STITCHING_ARRIVED': 'stitching',
+        'READY': 'ready',
+        'COMPLETED': 'ready',
+        'DELIVERED': 'delivered'
+      };
+      return map[status] || 'unassigned';
+    }
+
+    function formatStatus(status) {
+      const map = {
+        'UNASSIGNED': 'Order Received',
+        'WORK_ASSIGNED': 'Work Assigned',
+        'WORK_ARRIVED': 'Work Done',
+        'STITCHING_ASSIGNED': 'Stitching Assigned',
+        'STITCHING_ARRIVED': 'Stitching Done',
+        'COMPLETED': 'Ready',
+        'READY': 'Ready for Pickup',
+        'DELIVERED': 'Delivered'
+      };
+      return map[status] || status;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    function logQuery(jobNo, customerName, phone, message) {
+      try {
+        const stored = JSON.parse(localStorage.getItem('shibaam_queries') || '[]');
+        stored.unshift({
+          id: 'q' + Date.now(),
+          jobNo: jobNo || '',
+          customerName: customerName || '',
+          customerPhone: (phone || '').replace(/\D/g, ''),
+          message,
+          status: 'OPEN',
+          createdAt: new Date().toISOString(),
+          replies: []
+        });
+        localStorage.setItem('shibaam_queries', JSON.stringify(stored));
+      } catch (e) { console.warn('query log failed', e); }
+    }
+
+    function openWhatsApp(jobNo) {
+      const hit = renderedOrders[jobNo] || {};
+      const customerName = (hit.customer && hit.customer.customerName) || 'Customer';
+      const phone = (hit.customer && hit.customer.phone) || '';
+      const message = `Hello SHIBAAM Team,
+
+I'm ${customerName} (Job No: ${jobNo}).
+
+I'd like to inquire about my order and discuss further shopping requirements.
+
+Please let me know the current status.`;
+
+      logQuery(jobNo, customerName, phone, message);
+      window.open(`https://wa.me/919601879952?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    function openWhatsAppStatus(jobNo) {
+      const hit = renderedOrders[jobNo] || {};
+      const customerName = (hit.customer && hit.customer.customerName) || 'Customer';
+      const phone = (hit.customer && hit.customer.phone) || '';
+      const message = `Hello SHIBAAM Team,
+
+This is ${customerName} (Job No: ${jobNo}).
+
+My order is currently showing as "In Progress" / "Stitching" / "Work" stage.
+
+Could you please provide more detailed information about:
+1. Current exact status
+2. Expected completion date
+3. Any updates from the workshop
+
+Thank you!`;
+
+      logQuery(jobNo, customerName, phone, message);
+      window.open(`https://wa.me/919601879952?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    document.getElementById('ordersList').addEventListener('click', (e) => {
+      const wa = e.target.closest('[data-wa-order]');
+      if (wa) { openWhatsApp(wa.dataset.waOrder); return; }
+      const st = e.target.closest('[data-wa-status]');
+      if (st) openWhatsAppStatus(st.dataset.waStatus);
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('shibaam_customer_jobno');
+      sessionStorage.removeItem('shibaam_customer_token');
+      loginCard.classList.remove('hidden');
+      ordersCard.classList.add('hidden');
+      jobNoInput.value = '';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'View My Orders';
+    });
+  </script>
+</body>
+</html>

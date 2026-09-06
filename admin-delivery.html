@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Delivery Tracking</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+      --good:#2a7d2a;
+      --amber:#9c7a1f;
+      --warn:#b3261e;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
+
+    .btn-primary{
+      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-secondary{
+      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+    .btn-success{background:var(--good);color:#fff;}
+    .btn-success:hover{background:#236b23;}
+
+    .filter-bar{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
+    }
+    .filter-btn{
+      padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;transition:.2s;
+    }
+    .filter-btn:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .filter-btn.active{background:var(--brown);color:#fff;border-color:var(--brown);}
+
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{background:var(--cream);color:var(--brown-dark);border:1px solid var(--line);padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+    td{border:1px solid var(--line);padding:10px 12px;vertical-align:top;}
+    tr:hover td{background:#faf8f5;}
+
+    .delivery-job{font-family:Georgia;font-weight:600;font-size:14px;color:var(--brown-dark);}
+    .delivery-customer{font-weight:600;color:var(--ink);}
+    .delivery-phone{font-size:12px;color:var(--muted);}
+    .delivery-date{font-size:12px;color:var(--muted);}
+
+    .status-badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    }
+    .status-badge.pending{background:#fef9e7;color:#9c7a1f;}
+    .status-badge.dispatch{background:#e3f2fd;color:#1565c0;}
+    .status-badge.transit{background:#fff3e0;color:#b36b00;}
+    .status-badge.delivered{background:#e8f5e9;color:#2e7d32;}
+    .status-badge.returned{background:#fce4ec;color:#c62828;}
+
+    .btn-sm{
+      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
+    }
+    .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
+    .btn-sm.primary:hover{background:var(--brown-dark);}
+    .btn-sm.success{background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32;}
+    .btn-sm.success:hover{background:#c8e6c9;}
+    .btn-sm.danger{background:#fef2f2;border-color:#fecaca;color:#b3261e;}
+    .btn-sm.danger:hover{background:#fee2e2;}
+
+    .wa-btn{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid #c8e6c9;background:#e8f5e9;color:#2e7d32;cursor:pointer;transition:.2s;
+    }
+    .wa-btn:hover{background:#c8e6c9;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:40px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.stats-grid{grid-template-columns:1fr}}
+    .stat-card{
+      background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;
+    }
+    .stat-value{font-family:Georgia;font-weight:600;font-size:28px;color:var(--brown-dark);margin-bottom:4px;}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+    .modal-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(48,37,31,.5);display:flex;align-items:center;justify-content:center;
+      padding:24px;z-index:1000;opacity:0;visibility:hidden;transition:.2s;
+    }
+    .modal-overlay.show{opacity:1;visibility:visible;}
+    .modal{
+      background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+      padding:28px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;
+      box-shadow:var(--shadow);transform:scale(.95);transition:.2s;
+    }
+    .modal-overlay.show .modal{transform:scale(1);}
+
+    .modal-header{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
+    }
+    .modal-header h2{font-family:Georgia;font-weight:500;font-size:20px;color:var(--brown-dark);margin:0;}
+    .modal-close{
+      width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--paper);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+    }
+    .modal-close:hover{border-color:#d8c4b7;background:#f3e8de;}
+    .modal-close svg{width:20px;height:20px;}
+
+    .form-group{margin-bottom:16px;}
+    .form-group label{
+      display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;
+    }
+    .form-group input,.form-group textarea,.form-group select{
+      width:100%;border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:14px 16px;color:var(--ink);outline:none;font-size:15px;transition:.2s;font-family:inherit;
+    }
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{
+      border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);
+    }
+    .form-group textarea{min-height:100px;resize:vertical;}
+
+    .modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      th,td{padding:10px 12px;font-size:12px;}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./admin.html" aria-label="Back to Admin Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Admin Portal</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-value" id="statTotalDel">0</div><div class="stat-label">Total Deliveries</div></div>
+        <div class="stat-card"><div class="stat-value" id="statPendingDel">0</div><div class="stat-label">Pending</div></div>
+        <div class="stat-card"><div class="stat-value" id="statInTransit">0</div><div class="stat-label">In Transit</div></div>
+        <div class="stat-card"><div class="stat-value" id="statDeliveredDel">0</div><div class="stat-label">Delivered</div></div>
+      </div>
+
+      <!-- Deliveries Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h1>Delivery Tracking</h1>
+            <p>Track order dispatch, transit, and customer receipt</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+          <button class="filter-btn" data-filter="pending" onclick="setFilter(this,'pending')">Pending</button>
+          <button class="filter-btn" data-filter="dispatch" onclick="setFilter(this,'dispatch')">Dispatched</button>
+          <button class="filter-btn" data-filter="transit" onclick="setFilter(this,'transit')">In Transit</button>
+          <button class="filter-btn" data-filter="delivered" onclick="setFilter(this,'delivered')">Delivered</button>
+          <button class="filter-btn" data-filter="returned" onclick="setFilter(this,'returned')">Returned</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="deliveryTable">
+            <thead>
+              <tr>
+                <th style="width:120px;">Job No.</th>
+                <th>Customer</th>
+                <th style="width:120px;">Ready Date</th>
+                <th style="width:140px;">Status</th>
+                <th style="width:160px;">Dispatch Date</th>
+                <th style="width:160px;">Delivered Date</th>
+                <th style="width:180px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="deliveryBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <p>No deliveries found for this filter.</p>
+        </div>
+      </div>
+
+      <!-- Update Status Modal -->
+      <div class="modal-overlay hidden" id="statusModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2>Update Delivery Status</h2>
+            <button class="modal-close" id="closeStatusModal" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+
+          <form id="statusForm">
+            <input type="hidden" id="deliveryId">
+            <input type="hidden" id="deliveryJobNo">
+
+            <div class="form-group">
+              <label>New Status *</label>
+              <select id="newStatus" name="newStatus" required>
+                <option value="">Select status</option>
+                <option value="PENDING">Pending</option>
+                <option value="DISPATCHED">Dispatched</option>
+                <option value="IN_TRANSIT">In Transit</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="RETURNED">Returned</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Dispatch Date</label>
+              <input type="date" id="dispatchDate" name="dispatchDate">
+            </div>
+
+            <div class="form-group">
+              <label>Delivered Date</label>
+              <input type="date" id="deliveredDate" name="deliveredDate">
+            </div>
+
+            <div class="form-group">
+              <label>Courier / Tracking No.</label>
+              <input type="text" id="trackingNo" name="trackingNo" placeholder="e.g. DTDC 1234567890">
+            </div>
+
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea id="deliveryNotes" name="deliveryNotes" placeholder="Any delivery notes..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" id="cancelStatusBtn">Cancel</button>
+              <button type="submit" class="btn-primary">Update Status</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <a class="back-link" href="./admin.html" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Admin Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data - mirrors jobs that are READY or beyond
+    let deliveriesData = [
+      { id: 'del1', jobNo: 'H4600', customerName: 'Ayesha Patel', customerPhone: '9876543210', readyDate: '2024-12-28', status: 'PENDING', dispatchDate: '', deliveredDate: '', trackingNo: '', notes: '' },
+      { id: 'del2', jobNo: 'H4601', customerName: 'Rahul Sharma', customerPhone: '9876543211', readyDate: '2024-12-25', status: 'DISPATCHED', dispatchDate: '2024-12-26', deliveredDate: '', trackingNo: 'DTDC 1234567890', notes: 'Sent via DTDC' },
+      { id: 'del3', jobNo: 'H4602', customerName: 'Fatima Khan', customerPhone: '9876543212', readyDate: '2024-12-30', status: 'IN_TRANSIT', dispatchDate: '2024-12-31', deliveredDate: '', trackingNo: 'BlueDart 9876543210', notes: 'Out for delivery' },
+      { id: 'del4', jobNo: 'H4580', customerName: 'Priya Desai', customerPhone: '9876543213', readyDate: '2024-12-20', status: 'DELIVERED', dispatchDate: '2024-12-21', deliveredDate: '2024-12-23', trackingNo: 'DTDC 555666777', notes: 'Customer received' },
+      { id: 'del5', jobNo: 'H4550', customerName: 'Ayesha Patel', customerPhone: '9876543210', readyDate: '2024-11-15', status: 'RETURNED', dispatchDate: '2024-11-16', deliveredDate: '', trackingNo: 'DTDC 111222333', notes: 'Address issue - returned to shop' },
+    ];
+
+    let currentFilter = 'all';
+
+    const deliveryBody = document.getElementById('deliveryBody');
+    const emptyState = document.getElementById('emptyState');
+    const statusModal = document.getElementById('statusModal');
+    const statusForm = document.getElementById('statusForm');
+    const closeStatusModal = document.getElementById('closeStatusModal');
+    const cancelStatusBtn = document.getElementById('cancelStatusBtn');
+
+
+    function toast(msg, ok) {
+      let t = document.getElementById('appToast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'appToast';
+        t.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:1000;max-width:320px;background:#30251f;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;box-shadow:0 24px 70px rgba(76,48,34,.12);transition:opacity .3s;';
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.background = ok ? '#2a7d2a' : '#b3261e';
+      t.style.opacity = '1';
+      clearTimeout(t._h);
+      t._h = setTimeout(() => { t.style.opacity = '0'; }, 3500);
+    }
+    async function backendSave(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      try {
+        const d = await api(action, payload);
+        toast('Saved to Sheets', true);
+        return { ok: true, data: d };
+      } catch (err) {
+        toast('Save failed (' + err.message + ') — change reverted', false);
+        return { ok: false, error: err };
+      }
+    }
+
+    function backendCall(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
+    }
+    async function syncDeliveriesFromBackend() {
+      try {
+        if (!getAdminToken()) return;
+        const rows = await api('admin_list_deliveries', { token: getAdminToken(), filter: 'all' });
+        if (Array.isArray(rows) && rows.length) {
+          deliveriesData = rows;
+          renderDeliveries();
+          updateStats();
+        }
+      } catch (err) { console.warn('Backend sync failed, local only:', err); }
+    }
+
+    // Stats
+    function updateStats() {
+      const total = deliveriesData.length;
+      const pending = deliveriesData.filter(d => d.status === 'PENDING').length;
+      const transit = deliveriesData.filter(d => d.status === 'IN_TRANSIT').length;
+      const delivered = deliveriesData.filter(d => d.status === 'DELIVERED').length;
+
+      document.getElementById('statTotalDel').textContent = total;
+      document.getElementById('statPendingDel').textContent = pending;
+      document.getElementById('statInTransit').textContent = transit;
+      document.getElementById('statDeliveredDel').textContent = delivered;
+    }
+
+    // Filter
+    function setFilter(btn, filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderDeliveries();
+    }
+
+    function getFilteredDeliveries() {
+      if (currentFilter === 'all') return deliveriesData;
+      return deliveriesData.filter(d => d.status.toLowerCase() === currentFilter);
+    }
+
+    function getStatusClass(status) {
+      const map = {
+        'PENDING': 'pending',
+        'DISPATCHED': 'dispatch',
+        'IN_TRANSIT': 'transit',
+        'DELIVERED': 'delivered',
+        'RETURNED': 'returned'
+      };
+      return map[status] || 'pending';
+    }
+
+    function formatStatus(status) {
+      const map = {
+        'PENDING': 'Pending',
+        'DISPATCHED': 'Dispatched',
+        'IN_TRANSIT': 'In Transit',
+        'DELIVERED': 'Delivered',
+        'RETURNED': 'Returned'
+      };
+      return map[status] || status;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatPhone(phone) {
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length === 12 && cleaned.startsWith('91')) {
+        return `+91 ${cleaned.slice(2,7)} ${cleaned.slice(7)}`;
+      }
+      if (cleaned.length === 10) {
+        return `${cleaned.slice(0,5)} ${cleaned.slice(5)}`;
+      }
+      return phone;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    function renderDeliveries() {
+      const deliveries = getFilteredDeliveries();
+      if (deliveries.length === 0) {
+        deliveryBody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+      deliveryBody.innerHTML = deliveries.map(d => `
+        <tr>
+          <td><span class="delivery-job">${escapeHtml(d.jobNo)}</span></td>
+          <td>
+            <div class="delivery-customer">${escapeHtml(d.customerName)}</div>
+            <div class="delivery-phone">${formatPhone(d.customerPhone)}</div>
+          </td>
+          <td><div class="delivery-date">${formatDate(d.readyDate)}</div></td>
+          <td><span class="status-badge ${getStatusClass(d.status)}">${formatStatus(d.status)}</span></td>
+          <td><div class="delivery-date">${formatDate(d.dispatchDate)}</div></td>
+          <td><div class="delivery-date">${formatDate(d.deliveredDate)}</div></td>
+          <td>
+            <button class="btn-sm primary" onclick="openStatusModal('${d.id}')">Update</button>
+            ${d.status !== 'DELIVERED' && d.status !== 'RETURNED' ? `
+              <button class="wa-btn" data-del-wa="${d.id}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                WhatsApp
+              </button>
+            ` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Status Modal
+    function openStatusModal(id) {
+      const delivery = deliveriesData.find(x => x.id === id);
+      if (!delivery) return;
+
+      document.getElementById('deliveryId').value = delivery.id;
+      document.getElementById('deliveryJobNo').value = delivery.jobNo;
+      document.getElementById('newStatus').value = delivery.status;
+      document.getElementById('dispatchDate').value = delivery.dispatchDate;
+      document.getElementById('deliveredDate').value = delivery.deliveredDate;
+      document.getElementById('trackingNo').value = delivery.trackingNo;
+      document.getElementById('deliveryNotes').value = delivery.notes;
+
+      // Show/hide date fields based on status
+      updateDateFields(delivery.status);
+
+      statusModal.classList.remove('hidden');
+      setTimeout(() => statusModal.classList.add('show'), 10);
+    }
+
+    function closeStatusModalFn() {
+      statusModal.classList.remove('show');
+      setTimeout(() => statusModal.classList.add('hidden'), 200);
+    }
+
+    function updateDateFields(status) {
+      const dispatchGroup = document.getElementById('dispatchDate').closest('.form-group');
+      const deliveredGroup = document.getElementById('deliveredDate').closest('.form-group');
+
+      if (['DISPATCHED', 'IN_TRANSIT', 'DELIVERED', 'RETURNED'].includes(status)) {
+        dispatchGroup.style.display = 'block';
+      } else {
+        dispatchGroup.style.display = 'none';
+      }
+
+      if (['DELIVERED', 'RETURNED'].includes(status)) {
+        deliveredGroup.style.display = 'block';
+      } else {
+        deliveredGroup.style.display = 'none';
+      }
+    }
+
+    document.getElementById('newStatus').addEventListener('change', (e) => {
+      updateDateFields(e.target.value);
+    });
+
+    closeStatusModal.addEventListener('click', closeStatusModalFn);
+    cancelStatusBtn.addEventListener('click', closeStatusModalFn);
+
+    statusModal.addEventListener('click', (e) => {
+      if (e.target === statusModal) closeStatusModalFn();
+    });
+
+    statusForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('deliveryId').value;
+      const idx = deliveriesData.findIndex(d => d.id === id);
+      if (idx === -1) return;
+
+      const newStatus = document.getElementById('newStatus').value;
+      const dispatchDate = document.getElementById('dispatchDate').value;
+      const deliveredDate = document.getElementById('deliveredDate').value;
+      const trackingNo = document.getElementById('trackingNo').value.trim();
+      const notes = document.getElementById('deliveryNotes').value.trim();
+      const snap = JSON.stringify(deliveriesData);
+      const res = await backendSave('admin_update_delivery', {
+        id: deliveriesData[idx].id, status: newStatus,
+        dispatchDate, deliveredDate, trackingNo, notes
+      });
+      if (!res.ok) {
+        deliveriesData = JSON.parse(snap);
+        syncDeliveriesFromBackend();
+      } else {
+        deliveriesData[idx] = {
+          ...deliveriesData[idx],
+          status: newStatus, dispatchDate, deliveredDate, trackingNo, notes
+        };
+      }
+
+      closeStatusModalFn();
+      renderDeliveries();
+      updateStats();
+    });
+
+    function sendDeliveryWA(id) {
+      const d = deliveriesData.find(x => x.id === id) || {};
+      const jobNo = d.jobNo || '', customerName = d.customerName || 'Customer';
+      const phone = (d.customerPhone || '').replace(/\D/g, '');
+      const status = d.status || '';
+      const message = `Hello ${customerName},
+
+Your order (Job No: ${jobNo}) is currently: ${formatStatus(status)}.
+
+${status === 'PENDING' ? 'We will notify you once dispatched.' : ''}
+${status === 'DISPATCHED' ? 'Your order has been dispatched. Tracking details will be shared shortly.' : ''}
+${status === 'IN_TRANSIT' ? 'Your order is out for delivery. Expected delivery soon.' : ''}
+
+For any queries, contact us.
+
+SHIBAAM`;
+
+      window.open(`https://wa.me/91${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    document.getElementById('deliveryBody').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-del-wa]');
+      if (!btn) return;
+      sendDeliveryWA(btn.dataset.delWa);
+    });
+
+    // Init: local first, then backend sync
+    renderDeliveries();
+    updateStats();
+    syncDeliveriesFromBackend();
+
+    // Listen for job updates from admin-jobs.html
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'shibaam_jobs') {
+        try {
+          const jobs = JSON.parse(e.newValue);
+          syncDeliveriesFromJobs(jobs);
+        } catch {}
+      }
+    });
+
+    function syncDeliveriesFromJobs(jobs) {
+      // Find jobs that are READY or beyond
+      const readyJobs = jobs.filter(j => ['READY', 'DELIVERED'].includes(j.status));
+      const existingJobNos = new Set(deliveriesData.map(d => d.jobNo));
+
+      readyJobs.forEach(job => {
+        if (!existingJobNos.has(job.jobNo)) {
+          deliveriesData.unshift({
+            id: 'del' + Date.now() + Math.random(),
+            jobNo: job.jobNo,
+            customerName: job.customerName,
+            customerPhone: job.customerPhone || '9876543210',
+            readyDate: new Date().toISOString().split('T')[0],
+            status: 'PENDING',
+            dispatchDate: '',
+            deliveredDate: '',
+            trackingNo: '',
+            notes: ''
+          });
+        }
+      });
+      renderDeliveries();
+      updateStats();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Customer Queries</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+      --good:#2a7d2a;
+      --amber:#9c7a1f;
+      --warn:#b3261e;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
+
+    .btn-primary{
+      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-secondary{
+      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+    .btn-success{background:var(--good);color:#fff;}
+    .btn-success:hover{background:#236b23;}
+
+    .filter-bar{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
+    }
+    .filter-btn{
+      padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;
+      border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;transition:.2s;
+    }
+    .filter-btn:hover{border-color:#d8c4b7;background:#faf8f5;}
+    .filter-btn.active{background:var(--brown);color:#fff;border-color:var(--brown);}
+
+    .queries-list{display:flex;flex-direction:column;gap:16px;}
+
+    .query-card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+    }
+
+    .query-header{
+      display:flex;justify-content:space-between;align-items:flex-start;
+      padding:16px 20px;background:#faf8f5;border-bottom:1px solid var(--line);
+      flex-wrap:wrap;gap:12px;
+    }
+    .query-meta{display:flex;flex-direction:column;gap:4px;}
+    .query-jobno{font-family:Georgia;font-weight:600;font-size:14px;color:var(--brown-dark);}
+    .query-customer{font-weight:600;color:var(--ink);}
+    .query-date{font-size:11px;color:var(--muted);}
+
+    .query-status{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+    }
+    .query-status.open{background:#fef9e7;color:#9c7a1f;}
+    .query-status.in_progress{background:#e3f2fd;color:#1565c0;}
+    .query-status.resolved{background:#e8f5e9;color:#2e7d32;}
+    .query-status.closed{background:#e0e0e0;color:#616161;}
+
+    .query-body{padding:0 20px 16px;}
+    .query-message{
+      font-size:13px;color:var(--ink);line-height:1.6;
+      padding:16px 0;border-top:1px dashed var(--line);
+    }
+    .query-message:first-child{border-top:none;padding-top:0;}
+
+    .reply-section{
+      margin-top:16px;padding-top:16px;border-top:1px solid var(--line);
+    }
+    .reply-header{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;
+    }
+    .reply-header h4{font-family:Georgia;font-size:14px;color:var(--brown-dark);margin:0;}
+
+    .reply-form{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;
+    }
+    .reply-form textarea{
+      flex:1;min-width:250px;
+      border:1px solid var(--line);border-radius:10px;padding:10px 12px;
+      font-family:inherit;font-size:13px;resize:vertical;min-height:80px;
+    }
+    .reply-form textarea:focus{outline:none;border-color:var(--brown);box-shadow:0 0 0 3px rgba(139,74,54,.08);}
+
+    .reply-btn{
+      padding:10px 18px;border-radius:8px;font-size:12px;font-weight:700;
+      border:0;cursor:pointer;transition:.2s;white-space:nowrap;
+    }
+    .reply-btn.primary{background:var(--brown);color:#fff;}
+    .reply-btn.primary:hover{background:var(--brown-dark);}
+    .reply-btn.success{background:var(--good);color:#fff;}
+    .reply-btn.success:hover{background:#236b23;}
+
+    .replies-list{display:flex;flex-direction:column;gap:12px;margin-top:16px;padding-top:12px;border-top:1px dashed var(--line);}
+    .reply-item{
+      background:#faf8f5;border:1px solid var(--line);border-radius:10px;padding:12px 16px;
+    }
+    .reply-meta{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+      font-size:11px;color:var(--muted);
+    }
+    .reply-by{font-weight:600;color:var(--ink);}
+    .reply-text{font-size:12px;color:var(--ink);line-height:1.5;white-space:pre-wrap;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:40px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.stats-grid{grid-template-columns:1fr}}
+    .stat-card{
+      background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;
+    }
+    .stat-value{font-family:Georgia;font-weight:600;font-size:28px;color:var(--brown-dark);margin-bottom:4px;}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      .query-header{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./admin.html" aria-label="Back to Admin Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Admin Portal</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-value" id="statTotalQueries">0</div><div class="stat-label">Total Queries</div></div>
+        <div class="stat-card"><div class="stat-value" id="statOpenQueries">0</div><div class="stat-label">Open</div></div>
+        <div class="stat-card"><div class="stat-value" id="statInProgressQueries">0</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-card"><div class="stat-value" id="statResolvedQueries">0</div><div class="stat-label">Resolved</div></div>
+      </div>
+
+      <!-- Queries List -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h1>Customer Queries</h1>
+            <p>Manage and respond to customer inquiries via WhatsApp</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+          <button class="filter-btn" data-filter="open" onclick="setFilter(this,'open')">Open</button>
+          <button class="filter-btn" data-filter="in_progress" onclick="setFilter(this,'in_progress')">In Progress</button>
+          <button class="filter-btn" data-filter="resolved" onclick="setFilter(this,'resolved')">Resolved</button>
+          <button class="filter-btn" data-filter="closed" onclick="setFilter(this,'closed')">Closed</button>
+        </div>
+
+        <div class="queries-list" id="queriesList">
+          <!-- populated by JS -->
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <p>No queries found. Customers can raise queries from their portal.</p>
+        </div>
+      </div>
+
+      <a class="back-link" href="./admin.html" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Admin Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data - queries raised from customer portal
+    const DEFAULT_QUERIES = [
+      {
+        id: 'q1',
+        jobNo: 'H4600',
+        customerName: 'Ayesha Patel',
+        customerPhone: '9876543210',
+        message: 'Can I change the colour of the dupatta from gold to silver? The lehenga is maroon so silver would match better.',
+        status: 'OPEN',
+        createdAt: '2024-12-28T10:30:00',
+        replies: [
+          { by: 'Admin (Huzaifa)', text: 'Sure, we can change the dupatta to silver. Will confirm with the workshop.', at: '2024-12-28T11:15:00' }
+        ]
+      },
+      {
+        id: 'q2',
+        jobNo: 'H4601',
+        customerName: 'Rahul Sharma',
+        customerPhone: '9876543211',
+        message: 'When will my sherwani be ready? I need it by Jan 15th for a wedding.',
+        status: 'IN_PROGRESS',
+        createdAt: '2024-12-27T14:20:00',
+        replies: [
+          { by: 'Admin (Ahmed)', text: 'Your sherwani is in stitching stage. Expected completion by Jan 10th.', at: '2024-12-27T15:00:00' }
+        ]
+      },
+      {
+        id: 'q3',
+        jobNo: 'H4602',
+        customerName: 'Fatima Khan',
+        customerPhone: '9876543212',
+        message: 'Is it possible to add mirror work on the sleeves of the Anarkali suit?',
+        status: 'OPEN',
+        createdAt: '2024-12-29T09:45:00',
+        replies: []
+      },
+      {
+        id: 'q4',
+        jobNo: 'H4580',
+        customerName: 'Priya Desai',
+        customerPhone: '9876543213',
+        message: 'My order is ready for pickup. What are the shop timings?',
+        status: 'RESOLVED',
+        createdAt: '2024-12-22T16:10:00',
+        replies: [
+          { by: 'Admin (Fatima)', text: 'Shop is open 9 AM to 8 PM. Your order H4580 is ready for pickup.', at: '2024-12-22T16:30:00' }
+        ]
+      }
+    ];
+
+    function loadQueries() {
+      let base = DEFAULT_QUERIES.slice();
+      try {
+        const stored = localStorage.getItem('shibaam_queries');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const seen = new Set(base.map(q => q.id));
+            parsed.forEach(q => { if (!seen.has(q.id)) { base.unshift(q); seen.add(q.id); } });
+            // merge status/replies updates for known ids
+            const byId = {};
+            parsed.forEach(q => { byId[q.id] = q; });
+            base = base.map(q => byId[q.id] || q);
+            return base;
+          }
+        }
+      } catch (e) {}
+      return base;
+    }
+    function persistQueries() {
+      try { localStorage.setItem('shibaam_queries', JSON.stringify(queriesData)); } catch (e) {}
+    }
+    let queriesData = loadQueries();
+
+    let currentFilter = 'all';
+
+    const queriesList = document.getElementById('queriesList');
+    const emptyState = document.getElementById('emptyState');
+
+    function backendCall(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
+    }
+    async function syncQueriesFromBackend() {
+      try {
+        if (!getAdminToken()) return;
+        const rows = await api('admin_list_queries', { token: getAdminToken(), filter: 'all' });
+        if (Array.isArray(rows) && rows.length) {
+          const serverIds = new Set(rows.map(q => q.id));
+          const localOnly = queriesData.filter(q => !serverIds.has(q.id));
+          queriesData = rows.concat(localOnly);
+          persistQueries();
+          renderQueries();
+          updateStats();
+        }
+      } catch (err) { console.warn('Backend sync failed, local only:', err); }
+    }
+
+    // Stats
+    function updateStats() {
+      const total = queriesData.length;
+      const open = queriesData.filter(q => q.status === 'OPEN').length;
+      const inProgress = queriesData.filter(q => q.status === 'IN_PROGRESS').length;
+      const resolved = queriesData.filter(q => q.status === 'RESOLVED').length;
+
+      document.getElementById('statTotalQueries').textContent = total;
+      document.getElementById('statOpenQueries').textContent = open;
+      document.getElementById('statInProgressQueries').textContent = inProgress;
+      document.getElementById('statResolvedQueries').textContent = resolved;
+    }
+
+    // Filter
+    function setFilter(btn, filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderQueries();
+    }
+
+    function getFilteredQueries() {
+      if (currentFilter === 'all') return queriesData;
+      return queriesData.filter(q => q.status.toLowerCase() === currentFilter);
+    }
+
+    function getStatusClass(status) {
+      return status.toLowerCase().replace('_', '-');
+    }
+
+    function formatStatus(status) {
+      const map = {
+        'OPEN': 'Open',
+        'IN_PROGRESS': 'In Progress',
+        'RESOLVED': 'Resolved',
+        'CLOSED': 'Closed'
+      };
+      return map[status] || status;
+    }
+
+    function formatDateTime(isoStr) {
+      if (!isoStr) return '—';
+      const d = new Date(isoStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+        d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatPhone(phone) {
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length === 12 && cleaned.startsWith('91')) {
+        return `+91 ${cleaned.slice(2,7)} ${cleaned.slice(7)}`;
+      }
+      if (cleaned.length === 10) {
+        return `${cleaned.slice(0,5)} ${cleaned.slice(5)}`;
+      }
+      return phone;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    function renderQueries() {
+      const queries = getFilteredQueries();
+      if (queries.length === 0) {
+        queriesList.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+      queriesList.innerHTML = queries.map(q => `
+        <div class="query-card">
+          <div class="query-header">
+            <div class="query-meta">
+              <span class="query-jobno">Job No. ${escapeHtml(q.jobNo)}</span>
+              <span class="query-customer">${escapeHtml(q.customerName)}</span>
+              <span class="query-date">${formatDateTime(q.createdAt)}</span>
+            </div>
+            <span class="query-status ${getStatusClass(q.status)}">${formatStatus(q.status)}</span>
+          </div>
+          <div class="query-body">
+            <div class="query-message">${escapeHtml(q.message)}</div>
+
+            <!-- Replies -->
+            ${q.replies.length > 0 ? `
+              <div class="replies-list">
+                ${q.replies.map(r => `
+                  <div class="reply-item">
+                    <div class="reply-meta">
+                      <span class="reply-by">${escapeHtml(r.by)}</span>
+                      <span>${formatDateTime(r.at)}</span>
+                    </div>
+                    <div class="reply-text">${escapeHtml(r.text)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            <!-- Reply Form -->
+            <div class="reply-section">
+              <div class="reply-header">
+                <h4>Reply to Customer</h4>
+                <button class="wa-btn" onclick="replyViaWhatsApp('${q.id}')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  Quick WhatsApp
+                </button>
+              </div>
+              <form class="reply-form" onsubmit="submitReply(event, '${q.id}')">
+                <textarea name="replyText" placeholder="Type your reply..." required></textarea>
+                <button type="submit" class="reply-btn primary">Send Reply</button>
+                <button type="button" class="reply-btn success" onclick="updateQueryStatus('${q.id}', 'IN_PROGRESS')">Mark In Progress</button>
+                <button type="button" class="reply-btn" style="background:#e8f5e9;border:1px solid #a5d6a7;color:#2e7d32;" onclick="updateQueryStatus('${q.id}', 'RESOLVED')">Mark Resolved</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Reply via WhatsApp
+    window.replyViaWhatsApp = function(queryId) {
+      const query = queriesData.find(q => q.id === queryId);
+      if (!query) return;
+
+      const message = `Hello ${query.customerName},
+
+Regarding your query on Job No. ${query.jobNo}:
+
+"${query.message}"
+
+We are looking into this and will get back to you shortly.
+
+SHIBAAM`;
+
+      window.open(`https://wa.me/91${query.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+    };
+
+    // Submit reply (via admin portal - stores locally, also opens WhatsApp)
+    window.submitReply = function(e, queryId) {
+      e.preventDefault();
+      const form = e.target;
+      const textarea = form.querySelector('textarea[name="replyText"]');
+      const replyText = textarea.value.trim();
+      if (!replyText) return;
+
+      const query = queriesData.find(q => q.id === queryId);
+      if (!query) return;
+
+      // Add to local replies
+      query.replies.push({
+        by: 'Admin',
+        text: replyText,
+        at: new Date().toISOString()
+      });
+      backendCall('admin_reply_query', { id: queryId, replyText, by: 'Admin' });
+      persistQueries();
+
+      // Also open WhatsApp with the reply
+      const waMessage = `Hello ${query.customerName},
+
+Regarding your query on Job No. ${query.jobNo}:
+
+Our reply:
+${replyText}
+
+SHIBAAM`;
+
+      window.open(`https://wa.me/91${query.customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(waMessage)}`, '_blank');
+
+      // Clear textarea
+      textarea.value = '';
+
+      // Re-render
+      renderQueries();
+    };
+
+    // Update query status
+    // Update query status
+    window.updateQueryStatus = function(queryId, newStatus) {
+      const query = queriesData.find(q => q.id === queryId);
+      if (!query) return;
+      query.status = newStatus;
+      backendCall('admin_reply_query', { id: queryId, newStatus });
+      persistQueries();
+      renderQueries();
+      updateStats();
+    };
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    // Init
+    renderQueries();
+    updateStats();
+    syncQueriesFromBackend();
+
+    // Listen for new queries from customer portal
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'shibaam_queries') {
+        try {
+          queriesData = JSON.parse(e.newValue);
+          renderQueries();
+          updateStats();
+        } catch {}
+      }
+    });
+  </script>
+</body>
+</html>

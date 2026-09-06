@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8b4a36">
+  <title>SHIBAAM — Customers</title>
+  <style>
+    :root{
+      --brown:#8b4a36;
+      --brown-dark:#5f3024;
+      --brown-soft:#a9664f;
+      --cream:#f7f1e8;
+      --paper:#fffdf9;
+      --ink:#30251f;
+      --muted:#7d7068;
+      --line:#eadfd3;
+      --shadow:0 24px 70px rgba(76,48,34,.12);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(169,102,79,.10), transparent 28%),
+        radial-gradient(circle at 90% 85%, rgba(139,74,54,.08), transparent 30%),
+        var(--cream);
+    }
+
+    a{text-decoration:none;color:inherit}
+    button{font:inherit}
+
+    .page{
+      width:min(1180px, calc(100% - 36px));
+      margin:auto;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0 12px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
+    .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
+    .brand-byline{font-size:9px;color:var(--brown-soft);letter-spacing:1px;margin-top:1px}
+
+    main{flex:1;display:flex;flex-direction:column;padding:20px 0 40px;}
+
+    .card{
+      background:var(--paper);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:0 10px 35px rgba(76,48,34,.055);
+      margin-bottom:20px;
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+
+    .card-header h1{
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:500;
+      font-size:24px;
+      color:var(--brown-dark);
+      margin:0;
+    }
+
+    .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
+
+    .btn-primary{
+      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
+    }
+    .btn-primary:hover{background:var(--brown-dark);}
+    .btn-secondary{
+      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
+    }
+    .btn-secondary:hover{background:#e8ddd0;}
+
+    .search-box{
+      display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;
+    }
+    .search-box input{
+      flex:1;min-width:200px;
+      border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:12px 16px;color:var(--ink);outline:none;font-size:14px;transition:.2s;
+    }
+    .search-box input:focus{border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);}
+
+    .table-wrap{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    th{text-align:left;padding:12px 16px;border-bottom:2px solid var(--line);font-weight:700;color:var(--brown-dark);font-size:11px;text-transform:uppercase;letter-spacing:.5px;}
+    td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:#faf8f5;}
+
+    .customer-name{font-weight:600;color:var(--ink);}
+    .customer-phone{font-size:12px;color:var(--muted);}
+    .customer-email{font-size:12px;color:var(--muted);}
+    .customer-city{font-size:12px;color:var(--muted);}
+
+    .tag{
+      display:inline-block;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;
+    }
+    .tag.active{background:#e8f5e9;color:#2e7d32;}
+    .tag.inactive{background:#fef9e7;color:#9c7a1f;}
+    .tag.new{background:#f3e8de;color:var(--brown);}
+
+    .btn-icon{
+      width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--paper);
+      display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;margin-right:6px;
+    }
+    .btn-icon:hover{border-color:#d8c4b7;background:#f3e8de;}
+    .btn-icon svg{width:18px;height:18px;}
+
+    .empty-state{
+      text-align:center;color:var(--muted);padding:60px 20px;
+    }
+    .empty-state .icon{
+      width:64px;height:64px;border-radius:16px;background:#f3e8de;color:var(--brown);
+      display:grid;place-items:center;margin:0 auto 16px;
+    }
+
+    .modal-overlay{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(48,37,31,.5);display:flex;align-items:center;justify-content:center;
+      padding:24px;z-index:1000;opacity:0;visibility:hidden;transition:.2s;
+    }
+    .modal-overlay.show{opacity:1;visibility:visible;}
+    .modal{
+      background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+      padding:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;
+      box-shadow:var(--shadow);transform:scale(.95);transition:.2s;
+    }
+    .modal-overlay.show .modal{transform:scale(1);}
+
+    .modal-header{
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
+    }
+    .modal-header h2{font-family:Georgia;font-weight:500;font-size:20px;color:var(--brown-dark);margin:0;}
+    .modal-close{
+      width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--paper);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;
+    }
+    .modal-close:hover{border-color:#d8c4b7;background:#f3e8de;}
+    .modal-close svg{width:20px;height:20px;}
+
+    .form-group{margin-bottom:16px;}
+    .form-group label{
+      display:block;font-size:11px;font-weight:800;letter-spacing:.7px;color:#6f6159;text-transform:uppercase;margin-bottom:8px;
+    }
+    .form-group input,.form-group textarea,.form-group select{
+      width:100%;border:1px solid #dfd0c5;background:#fff;border-radius:12px;padding:14px 16px;color:var(--ink);outline:none;font-size:15px;transition:.2s;font-family:inherit;
+    }
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{
+      border-color:#b98976;box-shadow:0 0 0 3px rgba(139,74,54,.08);
+    }
+    .form-group textarea{min-height:100px;resize:vertical;}
+
+    .modal-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);}
+
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.stats-grid{grid-template-columns:1fr}}
+    .stat-card{
+      background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;
+    }
+    .stat-value{font-family:Georgia;font-weight:600;font-size:28px;color:var(--brown-dark);margin-bottom:4px;}
+    .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+    .back-link{
+      display:inline-flex;align-items:center;gap:6px;color:var(--brown);font-size:13px;font-weight:600;
+    }
+    .back-link svg{width:18px;height:18px;}
+
+    .hidden{display:none;}
+
+    @media(max-width:520px){
+      .page{width:min(100% - 24px,1180px)}
+      .card{padding:20px;border-radius:20px}
+      .card-header h1{font-size:20px}
+      th,td{padding:10px 12px;font-size:12px;}
+    }
+  </style>
+</head>
+
+<body>
+  <script>(function(){try{if(!sessionStorage.getItem("shibaam_admin_key")){window.location.href="./admin-login.html";}}catch(e){window.location.href="./admin-login.html";}})();</script>
+  <div class="page">
+
+    <header>
+      <a class="brand" href="./admin.html" aria-label="Back to Admin Portal">
+        <img class="brand-logo" src="./logo.png" alt="SHIBAAM logo">
+        <div>
+          <div class="brand-name">SHIBAAM</div>
+          <div class="brand-byline">Admin Portal</div>
+        </div>
+      </a>
+    </header>
+
+    <main>
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Customers</div></div>
+        <div class="stat-card"><div class="stat-value" id="statActive">0</div><div class="stat-label">Active (Orders)</div></div>
+        <div class="stat-card"><div class="stat-value" id="statNew">0</div><div class="stat-label">New This Month</div></div>
+        <div class="stat-card"><div class="stat-value" id="statOrders">0</div><div class="stat-label">Total Orders</div></div>
+      </div>
+
+      <!-- Customers Table -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h1>Customers</h1>
+            <p>Manage customer profiles and view order history</p>
+          </div>
+          <button class="btn-primary" id="addCustomerBtn">Add Customer</button>
+        </div>
+
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search by name, phone, email, city...">
+          <select id="statusFilter">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="new">New</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table id="customersTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Orders</th>
+                <th>Status</th>
+                <th>Last Order</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customersBody">
+              <!-- populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="empty-state hidden" id="emptyState">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <p>No customers found. Add your first customer.</p>
+        </div>
+      </div>
+
+      <!-- Add/Edit Customer Modal -->
+      <div class="modal-overlay hidden" id="customerModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 id="modalTitle">Add Customer</h2>
+            <button class="modal-close" id="closeModal" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+
+          <form id="customerForm">
+            <input type="hidden" id="customerId">
+
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="custName" name="name" placeholder="e.g. Ayesha Patel" required>
+            </div>
+
+            <div class="form-group">
+              <label>Phone (WhatsApp) *</label>
+              <input type="tel" id="custPhone" name="phone" placeholder="919876543210" required>
+            </div>
+
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="custEmail" name="email" placeholder="ayesha@example.com">
+            </div>
+
+            <div class="form-group">
+              <label>City</label>
+              <input type="text" id="custCity" name="city" placeholder="Surat">
+            </div>
+
+            <div class="form-group">
+              <label>Address</label>
+              <textarea id="custAddress" name="address" placeholder="Full address for delivery"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Status</label>
+              <select id="custStatus" name="status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="new">New</option>
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+              <button type="submit" class="btn-primary">Save Customer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- View Customer Modal (Order History) -->
+      <div class="modal-overlay hidden" id="viewModal">
+        <div class="modal" style="max-width:700px;">
+          <div class="modal-header">
+            <h2 id="viewTitle">Customer Details</h2>
+            <button class="modal-close" id="closeViewModal" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+          </div>
+
+          <div id="viewContent">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <a class="back-link" href="./admin.html" style="margin-top:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Back to Admin Portal
+      </a>
+    </main>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
+    async function api(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error || 'Request failed');
+      return j.data;
+    }
+    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || ''; } catch (e) { return ''; } }
+    
+    // Demo data - in production, fetch from Apps Script backend
+    let customers = [
+      {
+        id: 'cust1',
+        name: 'Ayesha Patel',
+        phone: '919876543210',
+        email: 'ayesha.patel@email.com',
+        city: 'Surat',
+        address: '123 Ring Road, Surat 395001',
+        status: 'active',
+        createdAt: '2024-01-15',
+        orders: [
+          { jobNo: 'SHBM-4600', date: '2024-12-15', status: 'STITCHING', total: 85000 },
+          { jobNo: 'SHBM-4550', date: '2024-10-20', status: 'DELIVERED', total: 42000 }
+        ]
+      },
+      {
+        id: 'cust2',
+        name: 'Rahul Sharma',
+        phone: '919876543211',
+        email: 'rahul.sharma@email.com',
+        city: 'Mumbai',
+        address: '456 Bandra West, Mumbai 400050',
+        status: 'active',
+        createdAt: '2024-03-22',
+        orders: [
+          { jobNo: 'SHBM-4601', date: '2024-12-10', status: 'READY', total: 65000 }
+        ]
+      },
+      {
+        id: 'cust3',
+        name: 'Fatima Khan',
+        phone: '919876543212',
+        email: 'fatima.khan@email.com',
+        city: 'Ahmedabad',
+        address: '789 Satellite Road, Ahmedabad 380015',
+        status: 'new',
+        createdAt: '2024-12-20',
+        orders: [
+          { jobNo: 'SHBM-4602', date: '2024-12-20', status: 'WORK', total: 38000 }
+        ]
+      },
+      {
+        id: 'cust4',
+        name: 'Mohammed Ali',
+        phone: '919876543213',
+        email: 'mohammed.ali@email.com',
+        city: 'Surat',
+        address: '321 Adajan, Surat 395009',
+        status: 'inactive',
+        createdAt: '2023-11-05',
+        orders: []
+      }
+    ];
+
+    // DOM Elements
+    const customersBody = document.getElementById('customersBody');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const addCustomerBtn = document.getElementById('addCustomerBtn');
+    const customerModal = document.getElementById('customerModal');
+    const customerForm = document.getElementById('customerForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const closeModal = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const viewModal = document.getElementById('viewModal');
+    const viewContent = document.getElementById('viewContent');
+    const closeViewModal = document.getElementById('closeViewModal');
+
+
+    function toast(msg, ok) {
+      let t = document.getElementById('appToast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'appToast';
+        t.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:1000;max-width:320px;background:#30251f;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;box-shadow:0 24px 70px rgba(76,48,34,.12);transition:opacity .3s;';
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.background = ok ? '#2a7d2a' : '#b3261e';
+      t.style.opacity = '1';
+      clearTimeout(t._h);
+      t._h = setTimeout(() => { t.style.opacity = '0'; }, 3500);
+    }
+    async function backendSave(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      try {
+        const d = await api(action, payload);
+        toast('Saved to Sheets', true);
+        return { ok: true, data: d };
+      } catch (err) {
+        toast('Save failed (' + err.message + ') — change reverted', false);
+        return { ok: false, error: err };
+      }
+    }
+
+    function backendCall(action, payload) {
+      payload = payload || {};
+      payload.token = getAdminToken();
+      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
+    }
+    async function syncCustomersFromBackend() {
+      try {
+        if (!getAdminToken()) return;
+        const rows = await api('admin_list_customers', { token: getAdminToken() });
+        if (Array.isArray(rows) && rows.length) {
+          customers = rows.map(c => ({ ...c, orders: c.orders || [] }));
+          renderCustomers();
+          updateStats();
+        }
+      } catch (err) { console.warn('Backend sync failed, local only:', err); }
+    }
+
+    // Stats
+    function updateStats() {
+      const total = customers.length;
+      const active = customers.filter(c => c.status === 'active').length;
+      const newCount = customers.filter(c => c.status === 'new').length;
+      const totalOrders = customers.reduce((sum, c) => sum + c.orders.length, 0);
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statNew').textContent = newCount;
+      document.getElementById('statOrders').textContent = totalOrders;
+    }
+
+    // Render table
+    function renderCustomers() {
+      const search = searchInput.value.toLowerCase();
+      const status = statusFilter.value;
+
+      let filtered = customers.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(search) ||
+          c.phone.includes(search) ||
+          c.email.toLowerCase().includes(search) ||
+          c.city.toLowerCase().includes(search);
+        const matchesStatus = !status || c.status === status;
+        return matchesSearch && matchesStatus;
+      });
+
+      if (filtered.length === 0) {
+        customersBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      customersBody.innerHTML = filtered.map(c => {
+        const lastOrder = c.orders.length > 0 ? c.orders[0] : null;
+        const lastOrderDate = lastOrder ? formatDate(lastOrder.date) : '—';
+        const lastOrderStatus = lastOrder ? formatStatus(lastOrder.status) : '—';
+
+        return `
+          <tr>
+            <td>
+              <div class="customer-name">${escapeHtml(c.name)}</div>
+            </td>
+            <td>
+              <div class="customer-phone">${formatPhone(c.phone)}</div>
+            </td>
+            <td>
+              <div class="customer-email">${escapeHtml(c.email) || '—'}</div>
+            </td>
+            <td>
+              <div class="customer-city">${escapeHtml(c.city)}</div>
+            </td>
+            <td>${c.orders.length}</td>
+            <td><span class="tag ${c.status}">${c.status.charAt(0).toUpperCase() + c.status.slice(1)}</span></td>
+            <td>${lastOrderDate} ${lastOrderStatus !== '—' ? `<br><span style="font-size:11px;color:var(--muted);">${lastOrderStatus}</span>` : ''}</td>
+            <td>
+              <button class="btn-icon" onclick="viewCustomer('${c.id}')" title="View Details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></button>
+              <button class="btn-icon" onclick="editCustomer('${c.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+              <button class="btn-icon" style="color:#b3261e;" onclick="deleteCustomer('${c.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // Modal functions
+    function openModal(editCustomer = null) {
+      if (editCustomer) {
+        modalTitle.textContent = 'Edit Customer';
+        document.getElementById('customerId').value = editCustomer.id;
+        document.getElementById('custName').value = editCustomer.name;
+        document.getElementById('custPhone').value = editCustomer.phone;
+        document.getElementById('custEmail').value = editCustomer.email;
+        document.getElementById('custCity').value = editCustomer.city;
+        document.getElementById('custAddress').value = editCustomer.address;
+        document.getElementById('custStatus').value = editCustomer.status;
+      } else {
+        modalTitle.textContent = 'Add Customer';
+        customerForm.reset();
+        document.getElementById('customerId').value = '';
+        document.getElementById('custStatus').value = 'new';
+      }
+      customerModal.classList.remove('hidden');
+      setTimeout(() => customerModal.classList.add('show'), 10);
+    }
+
+    function closeModalFn() {
+      customerModal.classList.remove('show');
+      setTimeout(() => customerModal.classList.add('hidden'), 200);
+    }
+
+    function openViewModal(customer) {
+      const ordersHtml = customer.orders.length > 0 ? customer.orders.map(o => `
+        <div style="padding:16px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:#faf8f5;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-family:Georgia;font-weight:600;font-size:14px;color:var(--brown-dark);">${escapeHtml(o.jobNo)}</span>
+            <span class="tag ${o.status.toLowerCase()}">${formatStatus(o.status)}</span>
+          </div>
+          <div style="font-size:12px;color:var(--muted);">
+            Date: ${formatDate(o.date)} • Total: ₹${o.total.toLocaleString('en-IN')}
+          </div>
+        </div>
+      `).join('') : '<p style="color:var(--muted);text-align:center;padding:20px;">No orders yet</p>';
+
+      viewContent.innerHTML = `
+        <div style="margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--line);">
+          <div style="font-family:Georgia;font-weight:600;font-size:18px;color:var(--brown-dark);margin-bottom:8px;">${escapeHtml(customer.name)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted);">
+            <span>📱 ${formatPhone(customer.phone)}</span>
+            <span>✉️ ${escapeHtml(customer.email) || '—'}</span>
+            <span>📍 ${escapeHtml(customer.city)}</span>
+            <span>🏷️ <span class="tag ${customer.status}">${customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}</span></span>
+            <span>📅 Since ${formatDate(customer.createdAt)}</span>
+          </div>
+          ${customer.address ? `<div style="margin-top:12px;font-size:12px;color:var(--muted);">${escapeHtml(customer.address)}</div>` : ''}
+        </div>
+        <div>
+          <h3 style="font-family:Georgia;font-size:16px;color:var(--brown-dark);margin:0 0 12px;">Order History (${customer.orders.length})</h3>
+          ${ordersHtml}
+        </div>
+      `;
+
+      viewModal.classList.remove('hidden');
+      setTimeout(() => viewModal.classList.add('show'), 10);
+    }
+
+    function closeViewModalFn() {
+      viewModal.classList.remove('show');
+      setTimeout(() => viewModal.classList.add('hidden'), 200);
+    }
+
+    // Event listeners
+    searchInput.addEventListener('input', renderCustomers);
+    statusFilter.addEventListener('change', renderCustomers);
+
+    addCustomerBtn.addEventListener('click', () => openModal());
+
+    closeModal.addEventListener('click', closeModalFn);
+    cancelBtn.addEventListener('click', closeModalFn);
+
+    closeViewModal.addEventListener('click', closeViewModalFn);
+
+    customerModal.addEventListener('click', (e) => {
+      if (e.target === customerModal) closeModalFn();
+    });
+
+    viewModal.addEventListener('click', (e) => {
+      if (e.target === viewModal) closeViewModalFn();
+    });
+
+    customerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('customerId').value;
+      const customerData = {
+        name: document.getElementById('custName').value.trim(),
+        phone: document.getElementById('custPhone').value.trim().replace(/\D/g, ''),
+        email: document.getElementById('custEmail').value.trim(),
+        city: document.getElementById('custCity').value.trim(),
+        address: document.getElementById('custAddress').value.trim(),
+        status: document.getElementById('custStatus').value
+      };
+
+      const snap = JSON.stringify(customers);
+      let res;
+      if (id) {
+        // Edit existing
+        const idx = customers.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          customers[idx] = { ...customers[idx], ...customerData };
+        }
+        res = await backendSave('admin_update_customer', { id, ...customerData });
+      } else {
+        // Add new
+        const newCustomer = {
+          id: 'cust' + Date.now(),
+          ...customerData,
+          createdAt: new Date().toISOString().split('T')[0],
+          orders: []
+        };
+        customers.unshift(newCustomer);
+        res = await backendSave('admin_create_customer', { ...customerData });
+      }
+
+      if (!res.ok) {
+        customers = JSON.parse(snap);
+        syncCustomersFromBackend();
+      }
+      closeModalFn();
+      renderCustomers();
+      updateStats();
+    });
+
+    // Global functions for inline onclick
+    window.viewCustomer = function(id) {
+      const customer = customers.find(c => c.id === id);
+      if (customer) openViewModal(customer);
+    };
+
+    window.editCustomer = function(id) {
+      const customer = customers.find(c => c.id === id);
+      if (customer) openModal(customer);
+    };
+
+    window.deleteCustomer = async function(id) {
+      if (!confirm('Delete this customer? This action cannot be undone.')) return;
+      const snap = JSON.stringify(customers);
+      customers = customers.filter(c => c.id !== id);
+      const res = await backendSave('admin_delete_customer', { id });
+      if (!res.ok) {
+        customers = JSON.parse(snap);
+        syncCustomersFromBackend();
+      }
+      renderCustomers();
+      updateStats();
+    };
+
+    // Helpers
+    function formatDate(dateStr) {
+      if (!dateStr) return '—';
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatPhone(phone) {
+      const cleaned = phone.replace(/\D/g, '');
+      if (cleaned.length === 12 && cleaned.startsWith('91')) {
+        return `+91 ${cleaned.slice(2,7)} ${cleaned.slice(7)}`;
+      }
+      if (cleaned.length === 10) {
+        return `${cleaned.slice(0,5)} ${cleaned.slice(5)}`;
+      }
+      return phone;
+    }
+
+    function formatStatus(status) {
+      const map = {
+        'UNASSIGNED': 'Order Received',
+        'WORK_ASSIGNED': 'Work Assigned',
+        'WORK_ARRIVED': 'Work Done',
+        'STITCHING_ASSIGNED': 'Stitching Assigned',
+        'STITCHING_ARRIVED': 'Stitching Done',
+        'COMPLETED': 'Ready',
+        'READY': 'Ready for Pickup',
+        'DELIVERED': 'Delivered'
+      };
+      return map[status] || status;
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+    }
+
+    // Init: local first, then backend sync
+    renderCustomers();
+    updateStats();
+    syncCustomersFromBackend();
+  </script>
+</body>
+</html>
