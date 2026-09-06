@@ -215,7 +215,7 @@
     </div>
 
     <div class="key-hint">
-      <strong>Key License format:</strong> SHBM-ADMIN-XXXX or SHBM-SUPER-XXXX<br>
+      <strong>Key License format:</strong> SHBM-ADMIN-XXXX, SHBM-SUPER-XXXX or your custom key<br>
       Contact Super Admin if you don't have a valid key.
     </div>
 
@@ -238,6 +238,7 @@
     
     // Valid key licenses (in production, verify against Apps Script backend)
     const VALID_KEYS = {
+      '1234': { role: 'SUPER_ADMIN', name: 'Super Admin' },
       'SHBM-SUPER-2024': { role: 'SUPER_ADMIN', name: 'Super Admin' },
       'SHBM-ADMIN-2024': { role: 'ADMIN', name: 'Admin User' },
       'SHBM-ADMIN-001': { role: 'ADMIN', name: 'Admin 1' },
@@ -282,7 +283,9 @@
         }
         // Offline/demo fallback: mint a local-* token so every backendCall
         // still sends a token (backend accepts local-* as offline pass).
-        sessionStorage.setItem('shibaam_admin_token', 'local-' + key);
+        // SUPER- prefix preserves SUPER_ADMIN for custom super keys like 1234.
+        sessionStorage.setItem('shibaam_admin_token',
+          'local-' + (user.role === 'SUPER_ADMIN' ? 'SUPER-' : '') + key);
       }
 
       if (user) {

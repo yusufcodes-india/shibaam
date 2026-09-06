@@ -70,10 +70,13 @@ Change only if this number is wrong.
 ------------------------------------------------------------
 STEP 5 — Match AdminKeys between backend and demo login
 ------------------------------------------------------------
-Code.gs seeds these 4 keys on setup (AdminKeys tab):
+Code.gs seeds these 4 keys on setup (AdminKeys tab) — you may replace them
+with your own rows (e.g. a single 1234 / SUPER_ADMIN row):
     SHBM-SUPER-2024 / SHBM-ADMIN-2024 / SHBM-ADMIN-001 / SHBM-ADMIN-002
 admin-login.html VALID_KEYS (line ~219) contains the SAME 4 keys
 for offline demo mode.
+- Custom keys (like 1234) must ALSO be added to VALID_KEYS in admin-login.html
+  with the right role, or offline login with that key will fail.
 - To ADD a staff member: add the key in BOTH places
   (AdminKeys sheet row + VALID_KEYS object), or better: wire
   admin-login.html to call api('login_admin') once backend is live.
