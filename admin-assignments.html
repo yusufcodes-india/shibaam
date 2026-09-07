@@ -5,22 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#8b4a36">
   <title>SHIBAAM — Worker Assignments</title>
+  <link rel="stylesheet" href="./css/theme.css">
   <style>
-    :root{
-      --brown:#8b4a36;
-      --brown-dark:#5f3024;
-      --brown-soft:#a9664f;
-      --cream:#f7f1e8;
-      --paper:#fffdf9;
-      --ink:#30251f;
-      --muted:#7d7068;
-      --line:#eadfd3;
-      --shadow:0 24px 70px rgba(76,48,34,.12);
-      --radius:24px;
-      --good:#2a7d2a;
-      --amber:#9c7a1f;
-      --warn:#b3261e;
-    }
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -46,18 +32,7 @@
       flex-direction:column;
     }
 
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:20px 0 12px;
-    }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
 
     .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
     .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
@@ -93,15 +68,6 @@
 
     .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
 
-    .btn-primary{
-      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
-    }
-    .btn-primary:hover{background:var(--brown-dark);}
-    .btn-secondary{
-      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
-      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
-    }
-    .btn-secondary:hover{background:#e8ddd0;}
 
     .filter-bar{
       display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
@@ -137,10 +103,6 @@
       background:#f3e8de;color:var(--brown);
     }
 
-    .btn-sm{
-      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
-      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
-    }
     .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
     .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
     .btn-sm.primary:hover{background:var(--brown-dark);}
@@ -187,42 +149,6 @@
     }
   </style>
 
-  <style>
-  /* ============ SHIBAAM responsive unity: phone <=520 / tablet 521-900 / laptop >900 ============ */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .table-wrap table{min-width:620px;}
-  @media(max-width:900px){
-    .portals{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .pc-stages{grid-template-columns:repeat(2,minmax(0,1fr));}
-  }
-  @media(max-width:520px){
-    body{font-size:14px;}
-    h1{font-size:clamp(26px,7vw,40px);}
-    .page{width:calc(100% - 24px) !important;max-width:1180px;}
-    .card{padding:16px;border-radius:20px;}
-    .portal{padding:20px;border-radius:20px;min-height:0;}
-    header{flex-wrap:wrap;gap:10px;}
-    .secure{flex-wrap:wrap;gap:8px;}
-    .portals{grid-template-columns:minmax(0,1fr);}
-    .stats-grid{grid-template-columns:minmax(0,1fr);}
-    .stat-value{font-size:24px;}
-    .form-grid,.form-row,.measure-grid,.meta-grid,.settings-grid{grid-template-columns:minmax(0,1fr);}
-    .pc-stages{grid-template-columns:minmax(0,1fr);}
-    .totals-section{max-width:none;}
-    .search-box{flex-direction:column;}
-    .search-box input{min-width:0;}
-    input,select,textarea{max-width:100%;font-size:16px;}
-    table{font-size:12px;}
-    button,.btn,.btn-primary,.btn-secondary,.btn-success,.btn-print,.add-row-btn,.btn-sm,.btn-wa,.wa-btn,.reply-btn,.filter-btn,.btn-icon,.modal-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;}
-    .back-link{display:inline-flex;align-items:center;min-height:44px;}
-    .order-actions .btn-wa{width:100%;}
-    .modal-overlay{padding:12px;}
-    .modal{max-width:100%;padding:20px;border-radius:20px;max-height:92vh;overflow-y:auto;}
-    .drive-link,.msg-preview,.particular-details,.query-message,.reply-text{overflow-wrap:anywhere;}
-    .filter-bar{display:flex;flex-wrap:wrap;}
-  }
-  </style>
 </head>
 
 <body>
@@ -301,21 +227,14 @@
     </main>
   </div>
 
-  <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
-    async function api(action, payload) {
-      payload = payload || {};
-      payload.action = action;
-      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
-      const j = await r.json();
-      if (!j.success) throw new Error(j.error || 'Request failed');
-      return j.data;
-    }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
-    
-    // Demo data - in production, fetch from Apps Script backend
-    // This mirrors the jobs data from admin-jobs.html
-    let assignmentsData = [
+  <script src="./js/config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+    <script>
+
+    // Demo rows only with ?demo=1
+    const DEMO_ON = (function(){ try { return new URLSearchParams(location.search).get('demo') === '1'; } catch (e) { return false; } })();
+    const DEFAULT_ASSIGNMENTS = DEMO_ON ? [
       // Job H4600
       { jobNo: 'H4600', customerName: 'Ayesha Patel', particularId: 'p1', particularName: 'Bridal Lehenga', category: 'LADIES', stage: 'WORK', status: 'WORK_ARRIVED', worker: 'Ahmed Raza' },
       { jobNo: 'H4600', customerName: 'Ayesha Patel', particularId: 'p2', particularName: 'Dupatta', category: 'LADIES', stage: 'WORK', status: 'WORK_ARRIVED', worker: 'Ahmed Raza' },
@@ -328,24 +247,22 @@
       { jobNo: 'H4602', customerName: 'Fatima Khan', particularId: 'p5', particularName: 'Anarkali Suit', category: 'LADIES', stage: 'WORK', status: 'WORK_ASSIGNED', worker: 'Mohammed Ali' },
       // Job H4603
       { jobNo: 'H4603', customerName: 'Priya Desai', particularId: 'p6', particularName: 'Saree Blouse', category: 'LADIES', stage: 'WORK', status: 'UNASSIGNED', worker: null },
-    ];
+    ] : [];
+    let assignmentsData = DEFAULT_ASSIGNMENTS.slice();
 
     let currentFilter = 'all';
 
     const assignBody = document.getElementById('assignBody');
     const emptyState = document.getElementById('emptyState');
 
-    function backendCall(action, payload) {
-      payload = payload || {};
-      payload.token = getAdminToken();
-      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
-    }
     async function syncAssignmentsFromBackend() {
       try {
         if (!getAdminToken()) return;
         const rows = await api('admin_list_assignments', { token: getAdminToken(), filter: 'all' });
         if (Array.isArray(rows) && rows.length) {
-          assignmentsData = rows;
+          const key = x => x.jobNo + '|' + x.particularId + '|' + x.stage;
+          const serverKeys = new Set(rows.map(key));
+          assignmentsData = rows.concat(assignmentsData.filter(x => !serverKeys.has(key(x))));
           renderAssignments();
           updateStats();
         }
@@ -473,7 +390,7 @@
     }
 
     // Action handlers (demo - update local data)
-    function assignWorker(jobNo, particularId, stage) {
+    async function assignWorker(jobNo, particularId, stage) {
       const workers = [
         { name: 'Huzaifa Tarwala', category: 'GENTS' },
         { name: 'Ahmed Raza', category: 'LADIES' },
@@ -488,51 +405,51 @@
         if (a) {
           a.worker = workers[idx].name;
           a.status = stage === 'WORK' ? 'WORK_ASSIGNED' : 'STITCHING_ASSIGNED';
-          backendCall('admin_assign_worker', { jobNo: a.jobNo, particularId: a.particularId, stage, worker: a.worker });
+          await saveQueued('admin_assign_worker', { jobNo: a.jobNo, particularId: a.particularId, stage, worker: a.worker }, { refetch: syncAssignmentsFromBackend });
           renderAssignments();
           updateStats();
         }
       }
     }
 
-    function markArrived(jobNo, particularId, stage) {
+    async function markArrived(jobNo, particularId, stage) {
       const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
       if (!a) return;
       a.status = stage === 'WORK' ? 'WORK_ARRIVED' : 'STITCHING_ARRIVED';
-      backendCall('admin_mark_arrived', { jobNo: a.jobNo, particularId: a.particularId, stage });
+      await saveQueued('admin_mark_arrived', { jobNo: a.jobNo, particularId: a.particularId, stage }, { refetch: syncAssignmentsFromBackend });
       renderAssignments();
       updateStats();
     }
 
-    function undoArrived(jobNo, particularId, stage) {
+    async function undoArrived(jobNo, particularId, stage) {
       const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
       if (!a) return;
       a.status = stage === 'WORK' ? 'WORK_ASSIGNED' : 'STITCHING_ASSIGNED';
       // Backend has no undo-arrival: reset then re-assign to restore ASSIGNED state
       (async () => {
-        const r1 = await backendCall('admin_reset_stage', { jobNo: a.jobNo, particularId: a.particularId, stage });
-        if (r1 !== null && a.worker) await backendCall('admin_assign_worker', { jobNo: a.jobNo, particularId: a.particularId, stage, worker: a.worker });
+        await saveQueued('admin_reset_stage', { jobNo: a.jobNo, particularId: a.particularId, stage }, {});
+        if (a.worker) await saveQueued('admin_assign_worker', { jobNo: a.jobNo, particularId: a.particularId, stage, worker: a.worker }, { refetch: syncAssignmentsFromBackend });
       })();
       renderAssignments();
       updateStats();
     }
 
-    function markComplete(jobNo, particularId, stage) {
+    async function markComplete(jobNo, particularId, stage) {
       const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
       if (!a) return;
       a.status = 'COMPLETED';
-      backendCall('admin_complete_particular', { jobNo: a.jobNo, particularId: a.particularId, stage: a.stage });
+      await saveQueued('admin_complete_particular', { jobNo: a.jobNo, particularId: a.particularId, stage: a.stage }, { refetch: syncAssignmentsFromBackend });
       renderAssignments();
       updateStats();
     }
 
-    function resetAssignment(jobNo, particularId, stage) {
+    async function resetAssignment(jobNo, particularId, stage) {
       if (!confirm('Reset this assignment? Worker will be unassigned.')) return;
       const a = assignmentsData.find(x => x.jobNo === jobNo && x.particularId === particularId && x.stage === stage);
       if (!a) return;
       a.worker = null;
       a.status = 'UNASSIGNED';
-      backendCall('admin_reset_stage', { jobNo: a.jobNo, particularId: a.particularId, stage: a.stage });
+      await saveQueued('admin_reset_stage', { jobNo: a.jobNo, particularId: a.particularId, stage: a.stage }, { refetch: syncAssignmentsFromBackend });
       renderAssignments();
       updateStats();
     }
@@ -551,7 +468,7 @@
 
 Please check and update status.`;
 
-      window.open(`https://wa.me/919601879952?text=${encodeURIComponent(message)}`, '_blank');
+      window.open(`https://wa.me/${SHOP.whatsapp}?text=${encodeURIComponent(message)}`, '_blank');
     }
     // Delegated handler: no raw names in markup (quote-safe, e.g. Men's Sherwani)
     document.getElementById('assignBody').addEventListener('click', (e) => {
@@ -560,10 +477,11 @@ Please check and update status.`;
       sendAssignmentWA(btn.dataset.waJob, btn.dataset.waPart, btn.dataset.waStage);
     });
 
-    // Init
+    // Init: guard re-verify, local first, then backend sync
     renderAssignments();
     updateStats();
     syncAssignmentsFromBackend();
+    guardAdmin();
 
     // Listen for updates from admin-jobs.html
     window.addEventListener('storage', (e) => {
