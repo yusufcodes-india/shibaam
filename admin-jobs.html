@@ -5,19 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#8b4a36">
   <title>SHIBAAM — Manage Jobs</title>
+  <link rel="stylesheet" href="./css/theme.css">
   <style>
-    :root{
-      --brown:#8b4a36;
-      --brown-dark:#5f3024;
-      --brown-soft:#a9664f;
-      --cream:#f7f1e8;
-      --paper:#fffdf9;
-      --ink:#30251f;
-      --muted:#7d7068;
-      --line:#eadfd3;
-      --shadow:0 24px 70px rgba(76,48,34,.12);
-      --radius:24px;
-    }
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -43,18 +32,7 @@
       flex-direction:column;
     }
 
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:20px 0 12px;
-    }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
 
     .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
     .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
@@ -90,15 +68,6 @@
 
     .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
 
-    .btn-primary{
-      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
-    }
-    .btn-primary:hover{background:var(--brown-dark);}
-    .btn-secondary{
-      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
-      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
-    }
-    .btn-secondary:hover{background:#e8ddd0;}
 
     .filter-bar{
       display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;
@@ -187,10 +156,6 @@
     .stage-worker{font-size:12px;color:var(--muted);margin-bottom:8px;}
     .stage-actions{display:flex;gap:8px;flex-wrap:wrap;}
 
-    .btn-sm{
-      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
-      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
-    }
     .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
     .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
     .btn-sm.primary:hover{background:var(--brown-dark);}
@@ -223,42 +188,6 @@
     }
   </style>
 
-  <style>
-  /* ============ SHIBAAM responsive unity: phone <=520 / tablet 521-900 / laptop >900 ============ */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .table-wrap table{min-width:620px;}
-  @media(max-width:900px){
-    .portals{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .pc-stages{grid-template-columns:repeat(2,minmax(0,1fr));}
-  }
-  @media(max-width:520px){
-    body{font-size:14px;}
-    h1{font-size:clamp(26px,7vw,40px);}
-    .page{width:calc(100% - 24px) !important;max-width:1180px;}
-    .card{padding:16px;border-radius:20px;}
-    .portal{padding:20px;border-radius:20px;min-height:0;}
-    header{flex-wrap:wrap;gap:10px;}
-    .secure{flex-wrap:wrap;gap:8px;}
-    .portals{grid-template-columns:minmax(0,1fr);}
-    .stats-grid{grid-template-columns:minmax(0,1fr);}
-    .stat-value{font-size:24px;}
-    .form-grid,.form-row,.measure-grid,.meta-grid,.settings-grid{grid-template-columns:minmax(0,1fr);}
-    .pc-stages{grid-template-columns:minmax(0,1fr);}
-    .totals-section{max-width:none;}
-    .search-box{flex-direction:column;}
-    .search-box input{min-width:0;}
-    input,select,textarea{max-width:100%;font-size:16px;}
-    table{font-size:12px;}
-    button,.btn,.btn-primary,.btn-secondary,.btn-success,.btn-print,.add-row-btn,.btn-sm,.btn-wa,.wa-btn,.reply-btn,.filter-btn,.btn-icon,.modal-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;}
-    .back-link{display:inline-flex;align-items:center;min-height:44px;}
-    .order-actions .btn-wa{width:100%;}
-    .modal-overlay{padding:12px;}
-    .modal{max-width:100%;padding:20px;border-radius:20px;max-height:92vh;overflow-y:auto;}
-    .drive-link,.msg-preview,.particular-details,.query-message,.reply-text{overflow-wrap:anywhere;}
-    .filter-bar{display:flex;flex-wrap:wrap;}
-  }
-  </style>
 </head>
 
 <body>
@@ -353,20 +282,14 @@
     </main>
   </div>
 
-  <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
-    async function api(action, payload) {
-      payload = payload || {};
-      payload.action = action;
-      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
-      const j = await r.json();
-      if (!j.success) throw new Error(j.error || 'Request failed');
-      return j.data;
-    }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
-    
+  <script src="./js/config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+    <script>
+
     // Demo data - in production, fetch from Apps Script backend
-    const DEFAULT_JOBS = [
+    const DEMO_ON = (function(){ try { return new URLSearchParams(location.search).get('demo') === '1'; } catch (e) { return false; } })();
+    const DEFAULT_JOBS = DEMO_ON ? [
       {
         jobNo: 'H4600',
         customerName: 'Ayesha Patel',
@@ -409,7 +332,7 @@
           { id: 'p6', name: 'Saree Blouse', category: 'LADIES', details: 'Red silk, back design as per image', status: 'UNASSIGNED', worker: null, urgent: false }
         ]
       }
-    ];
+    ] : [];
 
     function loadJobs() {
       try {
@@ -625,12 +548,6 @@
       `;
     }
 
-    // Backend (Apps Script) — sync on init, write-through on mutations, local fallback
-    function backendCall(action, payload) {
-      payload = payload || {};
-      payload.token = getAdminToken();
-      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
-    }
     async function syncJobsFromBackend() {
       try {
         const token = getAdminToken();
@@ -649,7 +566,9 @@
           } catch (e) { console.warn('detail fetch failed for', j.jobNo, e); }
         }
         if (full.length) {
-          jobsData = full;
+          const serverNos = new Set(full.map(x => x.jobNo));
+          const localOnly = jobsData.filter(x => !serverNos.has(x.jobNo));
+          jobsData = full.concat(localOnly);
           persistJobs();
           renderJobsList();
           if (selectedJob) {
@@ -661,7 +580,7 @@
     }
 
     // Action handlers (demo - in production call Apps Script)
-    function assignWorker(particularId, stage) {
+    async function assignWorker(particularId, stage) {
       const workers = [
         { name: 'Huzaifa Tarwala', category: 'GENTS' },
         { name: 'Ahmed Raza', category: 'LADIES' },
@@ -678,7 +597,7 @@
           p.worker = workers[idx].name;
           if (stage === 'WORK') p.status = 'WORK_ASSIGNED';
           else if (stage === 'STITCHING') p.status = 'STITCHING_ASSIGNED';
-          backendCall('admin_assign_worker', { jobNo: job.jobNo, particularId, stage, worker: workers[idx].name });
+          await saveQueued('admin_assign_worker', { jobNo: job.jobNo, particularId, stage, worker: workers[idx].name }, { refetch: syncJobsFromBackend });
           updateJobStatus(job);
           renderParticulars(job.particulars);
           renderJobsList();
@@ -686,31 +605,32 @@
       }
     }
 
-    function markArrived(particularId, stage) {
+    async function markArrived(particularId, stage) {
       const job = selectedJob;
       const p = job.particulars.find(p => p.id === particularId);
       if (!p) return;
       if (stage === 'WORK') p.status = 'WORK_ARRIVED';
       else if (stage === 'STITCHING') p.status = 'STITCHING_ARRIVED';
-      backendCall('admin_mark_arrived', { jobNo: job.jobNo, particularId, stage });
+      await saveQueued('admin_mark_arrived', { jobNo: job.jobNo, particularId, stage }, { refetch: syncJobsFromBackend });
       updateJobStatus(job);
       renderParticulars(job.particulars);
       renderJobsList();
     }
 
-    function undoArrived(particularId, stage) {
+    async function undoArrived(particularId, stage) {
       const job = selectedJob;
       const p = job.particulars.find(p => p.id === particularId);
       if (!p) return;
       if (stage === 'WORK') p.status = 'WORK_ASSIGNED';
       else if (stage === 'STITCHING') p.status = 'STITCHING_ASSIGNED';
-      backendCall('admin_reset_stage', { jobNo: job.jobNo, particularId, stage });
+      await saveQueued('admin_reset_stage', { jobNo: job.jobNo, particularId, stage }, { refetch: syncJobsFromBackend });
+      if (p.worker) await saveQueued('admin_assign_worker', { jobNo: job.jobNo, particularId, stage, worker: p.worker }, { refetch: syncJobsFromBackend });
       updateJobStatus(job);
       renderParticulars(job.particulars);
       renderJobsList();
     }
 
-    function markComplete(particularId, stage) {
+    async function markComplete(particularId, stage) {
       const job = selectedJob;
       const p = job.particulars.find(p => p.id === particularId);
       if (!p) return;
@@ -720,13 +640,13 @@
       } else if (stage === 'STITCHING') {
         p.status = 'COMPLETED';
       }
-      backendCall('admin_complete_particular', { jobNo: job.jobNo, particularId, stage });
+      await saveQueued('admin_complete_particular', { jobNo: job.jobNo, particularId, stage }, { refetch: syncJobsFromBackend });
       updateJobStatus(job);
       renderParticulars(job.particulars);
       renderJobsList();
     }
 
-    function resetStage(particularId, stage) {
+    async function resetStage(particularId, stage) {
       if (!confirm(`Reset ${stage} stage for this particular?`)) return;
       const job = selectedJob;
       const p = job.particulars.find(p => p.id === particularId);
@@ -738,7 +658,7 @@
         p.status = p.status === 'COMPLETED' ? 'WORK_ARRIVED' : 'UNASSIGNED';
         p.worker = null;
       }
-      backendCall('admin_reset_stage', { jobNo: job.jobNo, particularId, stage });
+      await saveQueued('admin_reset_stage', { jobNo: job.jobNo, particularId, stage }, { refetch: syncJobsFromBackend });
       updateJobStatus(job);
       renderParticulars(job.particulars);
       renderJobsList();
@@ -770,7 +690,7 @@
 
 Please provide an update on this ${stage.toLowerCase()} stage.`;
 
-      window.open(`https://wa.me/919601879952?text=${encodeURIComponent(message)}`, '_blank');
+      window.open(`https://wa.me/${SHOP.whatsapp}?text=${encodeURIComponent(message)}`, '_blank');
     }
 
     function openNewJobModal() {
@@ -781,9 +701,10 @@ Please provide an update on this ${stage.toLowerCase()} stage.`;
       window.print();
     }
 
-    // Init: local first, then backend sync
+    // Init: guard re-verify, local first, then backend sync
     renderJobsList();
     syncJobsFromBackend();
+    guardAdmin();
 
     // Listen for new job from admin-new-job.html
     window.addEventListener('storage', (e) => {

@@ -5,19 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#8b4a36">
   <title>SHIBAAM — Customers</title>
+  <link rel="stylesheet" href="./css/theme.css">
   <style>
-    :root{
-      --brown:#8b4a36;
-      --brown-dark:#5f3024;
-      --brown-soft:#a9664f;
-      --cream:#f7f1e8;
-      --paper:#fffdf9;
-      --ink:#30251f;
-      --muted:#7d7068;
-      --line:#eadfd3;
-      --shadow:0 24px 70px rgba(76,48,34,.12);
-      --radius:24px;
-    }
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -43,18 +32,7 @@
       flex-direction:column;
     }
 
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:20px 0 12px;
-    }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
 
     .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
     .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
@@ -90,10 +68,6 @@
 
     .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
 
-    .btn-primary{
-      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
-    }
-    .btn-primary:hover{background:var(--brown-dark);}
     .btn-secondary{
       border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
     }
@@ -205,42 +179,6 @@
     }
   </style>
 
-  <style>
-  /* ============ SHIBAAM responsive unity: phone <=520 / tablet 521-900 / laptop >900 ============ */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .table-wrap table{min-width:620px;}
-  @media(max-width:900px){
-    .portals{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .pc-stages{grid-template-columns:repeat(2,minmax(0,1fr));}
-  }
-  @media(max-width:520px){
-    body{font-size:14px;}
-    h1{font-size:clamp(26px,7vw,40px);}
-    .page{width:calc(100% - 24px) !important;max-width:1180px;}
-    .card{padding:16px;border-radius:20px;}
-    .portal{padding:20px;border-radius:20px;min-height:0;}
-    header{flex-wrap:wrap;gap:10px;}
-    .secure{flex-wrap:wrap;gap:8px;}
-    .portals{grid-template-columns:minmax(0,1fr);}
-    .stats-grid{grid-template-columns:minmax(0,1fr);}
-    .stat-value{font-size:24px;}
-    .form-grid,.form-row,.measure-grid,.meta-grid,.settings-grid{grid-template-columns:minmax(0,1fr);}
-    .pc-stages{grid-template-columns:minmax(0,1fr);}
-    .totals-section{max-width:none;}
-    .search-box{flex-direction:column;}
-    .search-box input{min-width:0;}
-    input,select,textarea{max-width:100%;font-size:16px;}
-    table{font-size:12px;}
-    button,.btn,.btn-primary,.btn-secondary,.btn-success,.btn-print,.add-row-btn,.btn-sm,.btn-wa,.wa-btn,.reply-btn,.filter-btn,.btn-icon,.modal-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;}
-    .back-link{display:inline-flex;align-items:center;min-height:44px;}
-    .order-actions .btn-wa{width:100%;}
-    .modal-overlay{padding:12px;}
-    .modal{max-width:100%;padding:20px;border-radius:20px;max-height:92vh;overflow-y:auto;}
-    .drive-link,.msg-preview,.particular-details,.query-message,.reply-text{overflow-wrap:anywhere;}
-    .filter-bar{display:flex;flex-wrap:wrap;}
-  }
-  </style>
 </head>
 
 <body>
@@ -390,20 +328,14 @@
     </main>
   </div>
 
-  <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
-    async function api(action, payload) {
-      payload = payload || {};
-      payload.action = action;
-      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
-      const j = await r.json();
-      if (!j.success) throw new Error(j.error || 'Request failed');
-      return j.data;
-    }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
-    
-    // Demo data - in production, fetch from Apps Script backend
-    let customers = [
+  <script src="./js/config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+    <script>
+
+    // Demo rows only with ?demo=1; otherwise start empty and sync from backend
+    const DEMO_ON = (function(){ try { return new URLSearchParams(location.search).get('demo') === '1'; } catch (e) { return false; } })();
+    const DEFAULT_CUSTOMERS = DEMO_ON ? [
       {
         id: 'cust1',
         name: 'Ayesha Patel',
@@ -455,7 +387,8 @@
         createdAt: '2023-11-05',
         orders: []
       }
-    ];
+    ] : [];
+    let customers = DEFAULT_CUSTOMERS.slice();
 
     // DOM Elements
     const customersBody = document.getElementById('customersBody');
@@ -473,44 +406,14 @@
     const closeViewModal = document.getElementById('closeViewModal');
 
 
-    function toast(msg, ok) {
-      let t = document.getElementById('appToast');
-      if (!t) {
-        t = document.createElement('div');
-        t.id = 'appToast';
-        t.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:1000;max-width:320px;background:#30251f;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;box-shadow:0 24px 70px rgba(76,48,34,.12);transition:opacity .3s;';
-        document.body.appendChild(t);
-      }
-      t.textContent = msg;
-      t.style.background = ok ? '#2a7d2a' : '#b3261e';
-      t.style.opacity = '1';
-      clearTimeout(t._h);
-      t._h = setTimeout(() => { t.style.opacity = '0'; }, 3500);
-    }
-    async function backendSave(action, payload) {
-      payload = payload || {};
-      payload.token = getAdminToken();
-      try {
-        const d = await api(action, payload);
-        toast('Saved to Sheets', true);
-        return { ok: true, data: d };
-      } catch (err) {
-        toast('Save failed (' + err.message + ') — change reverted', false);
-        return { ok: false, error: err };
-      }
-    }
-
-    function backendCall(action, payload) {
-      payload = payload || {};
-      payload.token = getAdminToken();
-      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
-    }
     async function syncCustomersFromBackend() {
       try {
         if (!getAdminToken()) return;
         const rows = await api('admin_list_customers', { token: getAdminToken() });
         if (Array.isArray(rows) && rows.length) {
-          customers = rows.map(c => ({ ...c, orders: c.orders || [] }));
+          const serverIds = new Set(rows.map(c => c.id));
+          const localOnly = customers.filter(c => !serverIds.has(c.id));
+          customers = rows.map(c => ({ ...c, orders: c.orders || [] })).concat(localOnly);
           renderCustomers();
           updateStats();
         }
@@ -689,7 +592,7 @@
         if (idx !== -1) {
           customers[idx] = { ...customers[idx], ...customerData };
         }
-        res = await backendSave('admin_update_customer', { id, ...customerData });
+        res = await saveQueued('admin_update_customer', { id, ...customerData }, { refetch: syncCustomersFromBackend });
       } else {
         // Add new
         const newCustomer = {
@@ -699,7 +602,7 @@
           orders: []
         };
         customers.unshift(newCustomer);
-        res = await backendSave('admin_create_customer', { ...customerData });
+        res = await saveQueued('admin_create_customer', { ...customerData }, { localId: customers[0] && customers[0].id, refetch: syncCustomersFromBackend });
       }
 
       if (!res.ok) {
@@ -726,7 +629,7 @@
       if (!confirm('Delete this customer? This action cannot be undone.')) return;
       const snap = JSON.stringify(customers);
       customers = customers.filter(c => c.id !== id);
-      const res = await backendSave('admin_delete_customer', { id });
+      const res = await saveQueued('admin_delete_customer', { id }, { refetch: syncCustomersFromBackend });
       if (!res.ok) {
         customers = JSON.parse(snap);
         syncCustomersFromBackend();
@@ -771,10 +674,11 @@
       const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
     }
 
-    // Init: local first, then backend sync
+    // Init: guard re-verify, local first, then backend sync
     renderCustomers();
     updateStats();
     syncCustomersFromBackend();
+    guardAdmin();
   </script>
 </body>
 </html>
