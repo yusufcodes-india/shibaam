@@ -6,21 +6,8 @@
   <meta name="theme-color" content="#8b4a36">
   <title>SHIBAAM — New Job Order</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="./css/theme.css">
   <style>
-    :root{
-      --brown:#8b4a36;
-      --brown-dark:#5f3024;
-      --brown-soft:#a9664f;
-      --cream:#f7f1e8;
-      --paper:#fffdf9;
-      --ink:#30251f;
-      --muted:#7d7068;
-      --line:#eadfd3;
-      --shadow:0 24px 70px rgba(76,48,34,.12);
-      --radius:24px;
-      --warn:#b3261e;
-      --good:#2a7d2a;
-    }
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -46,18 +33,7 @@
       flex-direction:column;
     }
 
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:20px 0 12px;
-    }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
 
     .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
     .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
@@ -299,42 +275,6 @@
     }
   </style>
 
-  <style>
-  /* ============ SHIBAAM responsive unity: phone <=520 / tablet 521-900 / laptop >900 ============ */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .table-wrap table{min-width:620px;}
-  @media(max-width:900px){
-    .portals{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .pc-stages{grid-template-columns:repeat(2,minmax(0,1fr));}
-  }
-  @media(max-width:520px){
-    body{font-size:14px;}
-    h1{font-size:clamp(26px,7vw,40px);}
-    .page{width:calc(100% - 24px) !important;max-width:1180px;}
-    .card{padding:16px;border-radius:20px;}
-    .portal{padding:20px;border-radius:20px;min-height:0;}
-    header{flex-wrap:wrap;gap:10px;}
-    .secure{flex-wrap:wrap;gap:8px;}
-    .portals{grid-template-columns:minmax(0,1fr);}
-    .stats-grid{grid-template-columns:minmax(0,1fr);}
-    .stat-value{font-size:24px;}
-    .form-grid,.form-row,.measure-grid,.meta-grid,.settings-grid{grid-template-columns:minmax(0,1fr);}
-    .pc-stages{grid-template-columns:minmax(0,1fr);}
-    .totals-section{max-width:none;}
-    .search-box{flex-direction:column;}
-    .search-box input{min-width:0;}
-    input,select,textarea{max-width:100%;font-size:16px;}
-    table{font-size:12px;}
-    button,.btn,.btn-primary,.btn-secondary,.btn-success,.btn-print,.add-row-btn,.btn-sm,.btn-wa,.wa-btn,.reply-btn,.filter-btn,.btn-icon,.modal-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;}
-    .back-link{display:inline-flex;align-items:center;min-height:44px;}
-    .order-actions .btn-wa{width:100%;}
-    .modal-overlay{padding:12px;}
-    .modal{max-width:100%;padding:20px;border-radius:20px;max-height:92vh;overflow-y:auto;}
-    .drive-link,.msg-preview,.particular-details,.query-message,.reply-text{overflow-wrap:anywhere;}
-    .filter-bar{display:flex;flex-wrap:wrap;}
-  }
-  </style>
 </head>
 
 <body>
@@ -434,18 +374,10 @@
     </main>
   </div>
 
-  <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
-    const SITE_URL = 'https://shibaamsite.vercel.app'; // <-- deployed domain (no trailing slash)
-    async function api(action, payload) {
-      payload = payload || {};
-      payload.action = action;
-      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
-      const j = await r.json();
-      if (!j.success) throw new Error(j.error || 'Request failed');
-      return j.data;
-    }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
+  <script src="./js/config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+    <script>
 
     // Sales team -> datalist suggestions (localStorage first, backend sync)
     function loadSalesTeam() {
@@ -620,26 +552,24 @@
         console.warn('Duplicate pre-check:', preErr);
       }
       statusEl.textContent = "Saving...";
-      try{
-        await api('admin_create_job', {
-          token: getAdminToken(),
-          jobNo, name, date, contact,
-          city: document.getElementById('city').value.trim(),
-          pinCode: document.getElementById('pinCode').value.trim(),
-          salesPerson: document.getElementById('salesPerson').value.trim(),
-          address: document.getElementById('address').value.trim(),
-          deliveryDays,
-          particulars, grandTotal
-        });
-        statusEl.style.color = "#2a7d2a";
-        statusEl.textContent = "Saved! Job order recorded to your Google Sheet.";
-      }catch(err){
-        // Backend failure is shown as-is: no local mirror, Save stays enabled.
+      const res = await saveQueued('admin_create_job', {
+        jobNo, name, date, contact,
+        city: document.getElementById('city').value.trim(),
+        pinCode: document.getElementById('pinCode').value.trim(),
+        salesPerson: document.getElementById('salesPerson').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        deliveryDays,
+        particulars, grandTotal
+      }, {});
+      if (!res.ok) {
+        // Backend failure is shown as-is (also queued for retry): no local mirror, Save stays enabled.
         statusEl.style.color = "#b33";
-        statusEl.textContent = "Save failed: " + err.message;
+        statusEl.textContent = "Save failed: " + res.error.message + " (queued — will retry when online)";
         saveBtn.disabled = false;
         return;
       }
+      statusEl.style.color = "#2a7d2a";
+      statusEl.textContent = "Saved! Job order recorded to your Google Sheet.";
       // Mirror to localStorage so admin-jobs.html list shows it
       mirrorJobLocal({
         id: 'job' + Date.now(),
@@ -743,13 +673,14 @@
       const itemsText = rows.map((p, i) =>
         `${i + 1}. ${(p.name || '').toUpperCase()} - ${inr(p.price)}\n   ${(p.detail || '').trim() || '—'}`
       ).join('\n\n\n');
-      const message = `Thank you for trusting SHIBAAM Collection.\n\nYour job order has been successfully created.\n\n\n*Job No:* ${jobNo}\n*Date:* ${dateStr}\n*Sales Person:* ${salesPerson}\n\n\n*Items:*\n${itemsText}\n\n\n*Grand Total:* ${inr(grandTotal)}\n\n\n*Delivery Address:*\n${address.toUpperCase()}\n\n\n*Estimated Delivery:* ${deliveryDays} days\n\n\n*Your Key License / Job No:* ${jobNo}\nPlease keep this Job Number safe as it will be required to track your order.\n\n\nTrack your order at: ${SITE_URL}/customer-orders.html\n\n\nFor queries:\nLadies & Groom Dept: 9601879952\nSaya / Kurta / Ezar: 7984986113\n\n\nThank you for choosing SHIBAAM Collection.\n\n\n${SITE_URL}`;
+      const message = `Thank you for trusting SHIBAAM Collection.\n\nYour job order has been successfully created.\n\n\n*Job No:* ${jobNo}\n*Date:* ${dateStr}\n*Sales Person:* ${salesPerson}\n\n\n*Items:*\n${itemsText}\n\n\n*Grand Total:* ${inr(grandTotal)}\n\n\n*Delivery Address:*\n${address.toUpperCase()}\n\n\n*Estimated Delivery:* ${deliveryDays} days\n\n\n*Your Key License / Job No:* ${jobNo}\nPlease keep this Job Number safe as it will be required to track your order.\n\n\nTrack your order at: ${SITE_URL}/customer-orders.html\n\n\nFor queries:\nLadies & Groom Dept: ${SHOP.ladies}\nSaya / Kurta / Ezar: ${SHOP.saya}\n\n\nThank you for choosing SHIBAAM Collection.\n\n\n${SITE_URL}`;
       window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
       statusEl.style.color = "#2a7d2a";
       statusEl.textContent = "WhatsApp opened — just tap Send.";
     }
 
-    // Init
+    // Init: guard re-verify
+    guardAdmin();
     document.getElementById('date').valueAsDate = new Date();
     document.getElementById('jobNo').value = generateJobNo();
     document.getElementById('deliveryDays').addEventListener('input', (e) => {
