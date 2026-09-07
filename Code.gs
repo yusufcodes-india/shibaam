@@ -33,7 +33,8 @@ var SHEET_DEFS = {
     'requirements','preferredDate','preferredTime','createdAt','status'],
   Settings: ['shopName','shopTagline','shopAddress','shopPhone','shopEmail',
     'shopSince','salesTeam','templates','systemSettings'],
-  AdminKeys: ['keyLicense','role','name','active']
+  AdminKeys: ['keyLicense','role','name','active'],
+  Errors: ['createdAt','action','message','context']
 };
 
 var JOB_STATUSES = ['UNASSIGNED','WORK','STITCHING','READY','DELIVERED'];
@@ -108,6 +109,9 @@ function doPost(e) {
       /* ---- queries ---- */
       case 'admin_list_queries': verifyAdmin(data.token); result = adminListQueries(data.filter); break;
       case 'admin_reply_query': verifyAdmin(data.token); result = adminReplyQuery(data); break;
+
+      /* ---- ops / error log (no auth: admin + customer pages report here) ---- */
+      case 'admin_log_error': result = adminLogError(data); break;
 
       /* ---- customer ---- */
       case 'customer_get_orders': result = customerGetOrders(data.token); break;
@@ -810,6 +814,15 @@ function adminUpdateMeasurement(data) {
 function adminDeleteMeasurement(id) {
   if (!id) throw new Error('Missing id');
   return deleteById('Measurements', id);
+}
+
+function adminLogError(data) {
+  return appendObj('Errors', {
+    createdAt: new Date().toISOString(),
+    action: String((data && data.action) || ''),
+    message: String((data && data.message) || '').slice(0, 1000),
+    context: String((data && data.context) || '').slice(0, 200)
+  });
 }
 
 function getDriveRoot() {
