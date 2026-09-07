@@ -5,22 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#8b4a36">
   <title>SHIBAAM — Delivery Tracking</title>
+  <link rel="stylesheet" href="./css/theme.css">
   <style>
-    :root{
-      --brown:#8b4a36;
-      --brown-dark:#5f3024;
-      --brown-soft:#a9664f;
-      --cream:#f7f1e8;
-      --paper:#fffdf9;
-      --ink:#30251f;
-      --muted:#7d7068;
-      --line:#eadfd3;
-      --shadow:0 24px 70px rgba(76,48,34,.12);
-      --radius:24px;
-      --good:#2a7d2a;
-      --amber:#9c7a1f;
-      --warn:#b3261e;
-    }
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -46,18 +32,7 @@
       flex-direction:column;
     }
 
-    header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:20px 0 12px;
-    }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
 
     .brand-logo{width:44px;height:44px;object-fit:contain;display:block;flex:none}
     .brand-name{font-family:Georgia,"Times New Roman",serif;font-size:18px;letter-spacing:1.5px;color:var(--brown-dark);margin:0}
@@ -93,15 +68,6 @@
 
     .card-header p{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 0;}
 
-    .btn-primary{
-      border:0;border-radius:12px;padding:12px 20px;font-weight:800;font-size:13px;cursor:pointer;background:var(--brown);color:#fff;transition:.2s;
-    }
-    .btn-primary:hover{background:var(--brown-dark);}
-    .btn-secondary{
-      border:1px solid var(--line);background:#f2e8df;color:var(--brown-dark);
-      border-radius:12px;padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s;
-    }
-    .btn-secondary:hover{background:#e8ddd0;}
     .btn-success{background:var(--good);color:#fff;}
     .btn-success:hover{background:#236b23;}
 
@@ -136,10 +102,6 @@
     .status-badge.delivered{background:#e8f5e9;color:#2e7d32;}
     .status-badge.returned{background:#fce4ec;color:#c62828;}
 
-    .btn-sm{
-      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
-      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
-    }
     .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
     .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
     .btn-sm.primary:hover{background:var(--brown-dark);}
@@ -224,42 +186,6 @@
     }
   </style>
 
-  <style>
-  /* ============ SHIBAAM responsive unity: phone <=520 / tablet 521-900 / laptop >900 ============ */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .table-wrap table{min-width:620px;}
-  @media(max-width:900px){
-    .portals{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .pc-stages{grid-template-columns:repeat(2,minmax(0,1fr));}
-  }
-  @media(max-width:520px){
-    body{font-size:14px;}
-    h1{font-size:clamp(26px,7vw,40px);}
-    .page{width:calc(100% - 24px) !important;max-width:1180px;}
-    .card{padding:16px;border-radius:20px;}
-    .portal{padding:20px;border-radius:20px;min-height:0;}
-    header{flex-wrap:wrap;gap:10px;}
-    .secure{flex-wrap:wrap;gap:8px;}
-    .portals{grid-template-columns:minmax(0,1fr);}
-    .stats-grid{grid-template-columns:minmax(0,1fr);}
-    .stat-value{font-size:24px;}
-    .form-grid,.form-row,.measure-grid,.meta-grid,.settings-grid{grid-template-columns:minmax(0,1fr);}
-    .pc-stages{grid-template-columns:minmax(0,1fr);}
-    .totals-section{max-width:none;}
-    .search-box{flex-direction:column;}
-    .search-box input{min-width:0;}
-    input,select,textarea{max-width:100%;font-size:16px;}
-    table{font-size:12px;}
-    button,.btn,.btn-primary,.btn-secondary,.btn-success,.btn-print,.add-row-btn,.btn-sm,.btn-wa,.wa-btn,.reply-btn,.filter-btn,.btn-icon,.modal-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;}
-    .back-link{display:inline-flex;align-items:center;min-height:44px;}
-    .order-actions .btn-wa{width:100%;}
-    .modal-overlay{padding:12px;}
-    .modal{max-width:100%;padding:20px;border-radius:20px;max-height:92vh;overflow-y:auto;}
-    .drive-link,.msg-preview,.particular-details,.query-message,.reply-text{overflow-wrap:anywhere;}
-    .filter-bar{display:flex;flex-wrap:wrap;}
-  }
-  </style>
 </head>
 
 <body>
@@ -391,27 +317,21 @@
     </main>
   </div>
 
-  <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
-    async function api(action, payload) {
-      payload = payload || {};
-      payload.action = action;
-      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) });
-      const j = await r.json();
-      if (!j.success) throw new Error(j.error || 'Request failed');
-      return j.data;
-    }
-    function getAdminToken() { try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; } catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } } }
-    
-    // Demo data - mirrors jobs that are READY or beyond
-    let deliveriesData = [
+  <script src="./js/config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+    <script>
+
+    // Demo rows only with ?demo=1
+    const DEMO_ON = (function(){ try { return new URLSearchParams(location.search).get('demo') === '1'; } catch (e) { return false; } })();
+    const DEFAULT_DELIVERIES = DEMO_ON ? [
       { id: 'del1', jobNo: 'H4600', customerName: 'Ayesha Patel', customerPhone: '9876543210', readyDate: '2024-12-28', status: 'PENDING', dispatchDate: '', deliveredDate: '', trackingNo: '', notes: '' },
       { id: 'del2', jobNo: 'H4601', customerName: 'Rahul Sharma', customerPhone: '9876543211', readyDate: '2024-12-25', status: 'DISPATCHED', dispatchDate: '2024-12-26', deliveredDate: '', trackingNo: 'DTDC 1234567890', notes: 'Sent via DTDC' },
       { id: 'del3', jobNo: 'H4602', customerName: 'Fatima Khan', customerPhone: '9876543212', readyDate: '2024-12-30', status: 'IN_TRANSIT', dispatchDate: '2024-12-31', deliveredDate: '', trackingNo: 'BlueDart 9876543210', notes: 'Out for delivery' },
       { id: 'del4', jobNo: 'H4580', customerName: 'Priya Desai', customerPhone: '9876543213', readyDate: '2024-12-20', status: 'DELIVERED', dispatchDate: '2024-12-21', deliveredDate: '2024-12-23', trackingNo: 'DTDC 555666777', notes: 'Customer received' },
       { id: 'del5', jobNo: 'H4550', customerName: 'Ayesha Patel', customerPhone: '9876543210', readyDate: '2024-11-15', status: 'RETURNED', dispatchDate: '2024-11-16', deliveredDate: '', trackingNo: 'DTDC 111222333', notes: 'Address issue - returned to shop' },
-    ];
-
+    ] : [];
+    let deliveriesData = DEFAULT_DELIVERIES.slice();
     let currentFilter = 'all';
 
     const deliveryBody = document.getElementById('deliveryBody');
@@ -422,44 +342,14 @@
     const cancelStatusBtn = document.getElementById('cancelStatusBtn');
 
 
-    function toast(msg, ok) {
-      let t = document.getElementById('appToast');
-      if (!t) {
-        t = document.createElement('div');
-        t.id = 'appToast';
-        t.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:1000;max-width:320px;background:#30251f;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;box-shadow:0 24px 70px rgba(76,48,34,.12);transition:opacity .3s;';
-        document.body.appendChild(t);
-      }
-      t.textContent = msg;
-      t.style.background = ok ? '#2a7d2a' : '#b3261e';
-      t.style.opacity = '1';
-      clearTimeout(t._h);
-      t._h = setTimeout(() => { t.style.opacity = '0'; }, 3500);
-    }
-    async function backendSave(action, payload) {
-      payload = payload || {};
-      payload.token = getAdminToken();
-      try {
-        const d = await api(action, payload);
-        toast('Saved to Sheets', true);
-        return { ok: true, data: d };
-      } catch (err) {
-        toast('Save failed (' + err.message + ') — change reverted', false);
-        return { ok: false, error: err };
-      }
-    }
-
-    function backendCall(action, payload) {
-      payload = payload || {};
-      payload.token = getAdminToken();
-      return api(action, payload).catch(function (err) { console.warn('Backend ' + action + ' failed, local only:', err); return null; });
-    }
     async function syncDeliveriesFromBackend() {
       try {
         if (!getAdminToken()) return;
         const rows = await api('admin_list_deliveries', { token: getAdminToken(), filter: 'all' });
         if (Array.isArray(rows) && rows.length) {
-          deliveriesData = rows;
+          const serverIds = new Set(rows.map(d => d.id));
+          const localOnly = deliveriesData.filter(d => !serverIds.has(d.id));
+          deliveriesData = rows.concat(localOnly);
           renderDeliveries();
           updateStats();
         }
@@ -633,10 +523,10 @@
       const trackingNo = document.getElementById('trackingNo').value.trim();
       const notes = document.getElementById('deliveryNotes').value.trim();
       const snap = JSON.stringify(deliveriesData);
-      const res = await backendSave('admin_update_delivery', {
+      const res = await saveQueued('admin_update_delivery', {
         id: deliveriesData[idx].id, status: newStatus,
         dispatchDate, deliveredDate, trackingNo, notes
-      });
+      }, { refetch: syncDeliveriesFromBackend });
       if (!res.ok) {
         deliveriesData = JSON.parse(snap);
         syncDeliveriesFromBackend();
@@ -678,10 +568,11 @@ SHIBAAM`;
       sendDeliveryWA(btn.dataset.delWa);
     });
 
-    // Init: local first, then backend sync
+    // Init: guard re-verify, local first, then backend sync
     renderDeliveries();
     updateStats();
     syncDeliveriesFromBackend();
+    guardAdmin();
 
     // Listen for job updates from admin-jobs.html
     window.addEventListener('storage', (e) => {
