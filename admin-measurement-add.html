@@ -6,22 +6,8 @@
   <meta name="theme-color" content="#8b4a36">
   <title>SHIBAAM — Add Measurement</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="./css/theme.css">
   <style>
-    :root{
-      --brown:#8b4a36;
-      --brown-dark:#5f3024;
-      --brown-soft:#a9664f;
-      --cream:#f7f1e8;
-      --paper:#fffdf9;
-      --ink:#30251f;
-      --muted:#7d7068;
-      --line:#eadfd3;
-      --shadow:0 24px 70px rgba(76,48,34,.12);
-      --radius:24px;
-      --good:#2a7d2a;
-      --warn:#b3261e;
-      --info:#1565c0;
-    }
 
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
@@ -204,10 +190,6 @@
     .drive-helper{
       display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;
     }
-    .btn-sm{
-      padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;
-      border:1px solid var(--line);background:var(--paper);cursor:pointer;transition:.2s;
-    }
     .btn-sm:hover{border-color:#d8c4b7;background:#faf8f5;}
     .btn-sm.primary{background:var(--brown);border-color:var(--brown);color:#fff;}
     .btn-sm.primary:hover{background:var(--brown-dark);}
@@ -307,42 +289,6 @@
     }
   </style>
 
-  <style>
-  /* ============ SHIBAAM responsive unity: phone <=520 / tablet 521-900 / laptop >900 ============ */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .table-wrap table{min-width:620px;}
-  @media(max-width:900px){
-    .portals{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-    .pc-stages{grid-template-columns:repeat(2,minmax(0,1fr));}
-  }
-  @media(max-width:520px){
-    body{font-size:14px;}
-    h1{font-size:clamp(26px,7vw,40px);}
-    .page{width:calc(100% - 24px) !important;max-width:1180px;}
-    .card{padding:16px;border-radius:20px;}
-    .portal{padding:20px;border-radius:20px;min-height:0;}
-    header{flex-wrap:wrap;gap:10px;}
-    .secure{flex-wrap:wrap;gap:8px;}
-    .portals{grid-template-columns:minmax(0,1fr);}
-    .stats-grid{grid-template-columns:minmax(0,1fr);}
-    .stat-value{font-size:24px;}
-    .form-grid,.form-row,.measure-grid,.meta-grid,.settings-grid{grid-template-columns:minmax(0,1fr);}
-    .pc-stages{grid-template-columns:minmax(0,1fr);}
-    .totals-section{max-width:none;}
-    .search-box{flex-direction:column;}
-    .search-box input{min-width:0;}
-    input,select,textarea{max-width:100%;font-size:16px;}
-    table{font-size:12px;}
-    button,.btn,.btn-primary,.btn-secondary,.btn-success,.btn-print,.add-row-btn,.btn-sm,.btn-wa,.wa-btn,.reply-btn,.filter-btn,.btn-icon,.modal-close{display:inline-flex;align-items:center;justify-content:center;min-height:44px;}
-    .back-link{display:inline-flex;align-items:center;min-height:44px;}
-    .order-actions .btn-wa{width:100%;}
-    .modal-overlay{padding:12px;}
-    .modal{max-width:100%;padding:20px;border-radius:20px;max-height:92vh;overflow-y:auto;}
-    .drive-link,.msg-preview,.particular-details,.query-message,.reply-text{overflow-wrap:anywhere;}
-    .filter-bar{display:flex;flex-wrap:wrap;}
-  }
-  </style>
 </head>
 
 <body>
@@ -487,10 +433,10 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script>
-    // ⚠️ CONFIG: Replace with your deployed Google Apps Script Web App URL
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzxxOV4Ny28VR7p7YgXkSst-wEe5UpSW8HsjHMXrYEIo3UuDyUv6y_t7Hknq8h6fwtO/exec';
-
+  <script src="./js/config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+    <script>
     // Measurement field IDs (matching shibaam.html structure)
     const MEASUREMENT_FIELDS = [
       'shoulder', 'aroundNeck', 'sleeveLength', 'armhole',
@@ -589,44 +535,16 @@
       return data;
     }
 
-    // Backend contract (Code.gs): admin_create_drive_folder / admin_create_measurement
-    function getAdminToken() {
-      try { return sessionStorage.getItem('shibaam_admin_token') || localStorage.getItem('shibaam_admin_token') || ''; }
-      catch (e) { try { return localStorage.getItem('shibaam_admin_token') || ''; } catch (e2) { return ''; } }
-    }
-
     // Call Apps Script: Create Drive Folder
     async function createDriveFolderViaAppsScript(custName, jobNo, date) {
-      const response = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          action: 'admin_create_drive_folder',
-          token: getAdminToken(),
-          custName,
-          jobNo: jobNo || 'NEW',
-          date
-        })
-      });
-      const result = await response.json();
-      if (!result.success) throw new Error(result.error || 'Failed to create Drive folder');
-      return result.data; // { folderUrl, folderId }
+      return api('admin_create_drive_folder', {
+        token: getAdminToken(), custName, jobNo: jobNo || 'NEW', date
+      }); // { folderUrl, folderId }
     }
 
     // Call Apps Script: Save Measurement
     async function saveMeasurementViaAppsScript(data) {
-      const response = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          action: 'admin_create_measurement',
-          token: getAdminToken(),
-          ...data
-        })
-      });
-      const result = await response.json();
-      if (!result.success) throw new Error(result.error || 'Failed to save measurement');
-      return result.data;
+      return api('admin_create_measurement', { token: getAdminToken(), ...data });
     }
 
     // Create Drive Folder (pre-create or during save)
@@ -701,7 +619,8 @@
     }
 
     function isAppsScriptConfigured() {
-      return APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID');
+      try { return typeof SCRIPT_URL === 'string' && SCRIPT_URL.indexOf('http') === 0 && SCRIPT_URL.indexOf('YOUR_SCRIPT_ID') === -1; }
+      catch (e) { return false; }
     }
 
     // Main save: Create folder (if not exists) + Save measurement
@@ -743,7 +662,12 @@
         // Step 2: Save measurement data (backend first; local mirror only on success)
         saveBtn.textContent = 'Saving measurement...';
         if (isAppsScriptConfigured()) {
-          await saveMeasurementViaAppsScript(data);
+          try {
+            await saveMeasurementViaAppsScript(data);
+          } catch (saveErr) {
+            queueOutbox('admin_create_measurement', data, null);
+            throw new Error(saveErr.message + ' (queued — will retry when online)');
+          }
         }
         saveMeasurementLocal(data);
 
@@ -767,6 +691,9 @@
     form.querySelectorAll('input, textarea').forEach(el => {
       el.addEventListener('input', clearError);
     });
+
+    // Guard re-verify (login page handles redirect)
+    guardAdmin();
 
     // Edit mode: prefill from ?id=xxx (localStorage first, then defaults)
     (function prefillEditMode() {
