@@ -231,7 +231,7 @@
             <h1>Measurements</h1>
             <p>Manage customer measurement records with Google Drive links</p>
           </div>
-          <button class="btn-primary" id="addMeasureBtn">Add Measurement</button>
+          <a class="btn-primary" id="addMeasureBtn" href="./admin-measurement-add.html">Add Measurement</a>
         </div>
 
         <div class="search-box">
@@ -341,7 +341,10 @@
     </main>
   </div>
 
-  <script>
+  <script src="./js/config.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/auth.js"></script>
+    <script>
     
     // Demo data - in production, fetch from Apps Script backend
     const DEMO_ON = (function(){ try { return new URLSearchParams(location.search).get('demo') === '1'; } catch (e) { return false; } })();
@@ -417,6 +420,11 @@
     const viewMeasureModal = document.getElementById('viewMeasureModal');
     const viewMeasureContent = document.getElementById('viewMeasureContent');
     const closeViewMeasureModal = document.getElementById('closeViewMeasureModal');
+
+    // Edit navigation (defined first so it survives any later script error)
+    window.editMeasure = function(id) {
+      window.location.href = './admin-measurement-add.html?id=' + encodeURIComponent(id);
+    };
 
     async function syncMeasurementsFromBackend() {
       try {
@@ -597,10 +605,6 @@
     searchInput.addEventListener('input', renderMeasures);
     filterSelect.addEventListener('change', renderMeasures);
 
-    addMeasureBtn.addEventListener('click', () => {
-      window.location.href = './admin-measurement-add.html';
-    });
-
     closeMeasureModal.addEventListener('click', closeMeasureModalFn);
     cancelMeasureBtn.addEventListener('click', closeMeasureModalFn);
 
@@ -653,10 +657,6 @@
     window.viewMeasure = function(id) {
       const measure = measurements.find(m => m.id === id);
       if (measure) openViewMeasureModal(measure);
-    };
-
-    window.editMeasure = function(id) {
-      window.location.href = './admin-measurement-add.html?id=' + encodeURIComponent(id);
     };
 
     window.deleteMeasure = async function(id) {
