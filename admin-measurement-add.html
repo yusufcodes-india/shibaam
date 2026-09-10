@@ -306,10 +306,10 @@
         <p>SHIBAAM</p>
       </div>
 
-      <div class="header-brand">
+      <a class="brand header-brand" href="./admin.html" aria-label="Back to Admin Portal" style="text-decoration:none;">
         <img class="logo" src="./logo.png" alt="SHIBAAM">
         <span class="name">SHIBAAM</span>
-      </div>
+      </a>
       <div style="display:flex;gap:6px;align-items:center;">
         <a href="./index.html" style="background:transparent;border:1px solid #ddcabe;border-radius:999px;color:var(--brown);font-size:11px;font-weight:700;padding:5px 12px;">HOME</a>
         <a href="./admin.html" style="background:var(--brown);border:1px solid var(--brown);border-radius:999px;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;">ADMIN</a>
@@ -362,6 +362,7 @@
               <div class="form-group full">
                 <label>Drive Folder Link <span class="required">*</span></label>
                 <input type="url" id="driveLink" name="driveLink" placeholder="Drive folder will be created automatically when you save" readonly>
+                <a id="openFolderLink" href="#" target="_blank" rel="noopener" style="display:none;font-size:12px;color:var(--brown);font-weight:700;">Open folder ↗</a>
                 <p class="helper">Drive folder will be created automatically when you save. Click "Create Drive Folder Now" to pre-create it.</p>
               </div>
               <div class="drive-helper">
@@ -419,6 +420,7 @@
 
           <!-- Sticky Save Bar -->
           <div class="save-bar">
+            <div id="saveStatus" role="status" aria-live="polite" style="flex:1 1 100%;min-height:18px;font-size:12px;color:var(--muted);"></div>
             <a href="./admin-measurements.html" class="btn btn-secondary">Cancel</a>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <button type="button" class="btn btn-secondary" onclick="printMeasurement()">Print</button>
@@ -429,6 +431,10 @@
         </div>
       </div>
     </main>
+    <a class="back-link" href="./admin.html" style="margin-top:16px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Admin Portal
+    </a>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -451,6 +457,44 @@
     const formError = document.getElementById('formError');
     const toast = document.getElementById('toast');
     const driveLinkInput = document.getElementById('driveLink');
+    const saveStatus = document.getElementById('saveStatus');
+    const openFolderLink = document.getElementById('openFolderLink');
+
+    // Persistent status line: narrates every step, never auto-hides (toasts are extras only)
+    function setStatus(msg, ok) {
+      if (!saveStatus) return;
+      saveStatus.textContent = msg;
+      saveStatus.style.color = ok === true ? '#2a7d2a' : (ok === false ? '#b3261e' : '#7d7068');
+    }
+
+    // Same contract as shared api(), but aborts after 25s so buttons never hang
+    async function api25(action, payload) {
+      payload = payload || {};
+      payload.action = action;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 25000);
+      try {
+        const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload), signal: ctrl.signal });
+        const j = await r.json();
+        if (!j.success) throw new Error(j.error || 'Request failed');
+        return j.data;
+      } catch (err) {
+        if (err && err.name === 'AbortError') throw new Error('Server took too long — check Apps Script Executions, your entry is kept');
+        throw err;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    function fillOpenFolderLink(url) {
+      if (!openFolderLink) return;
+      if (url) {
+        openFolderLink.href = url;
+        openFolderLink.style.display = '';
+      } else {
+        openFolderLink.style.display = 'none';
+      }
+    }
 
     // Set today's date as default
     document.getElementById('measureDate').valueAsDate = new Date();
@@ -497,6 +541,7 @@
     function showError(message) {
       formError.textContent = message;
       formError.classList.add('show');
+      setStatus(message, false);
       formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
@@ -537,14 +582,14 @@
 
     // Call Apps Script: Create Drive Folder
     async function createDriveFolderViaAppsScript(custName, jobNo, date) {
-      return api('admin_create_drive_folder', {
+      return api25('admin_create_drive_folder', {
         token: getAdminToken(), custName, jobNo: jobNo || 'NEW', date
       }); // { folderUrl, folderId }
     }
 
     // Call Apps Script: Save Measurement
     async function saveMeasurementViaAppsScript(data) {
-      return api('admin_create_measurement', { token: getAdminToken(), ...data });
+      return api25('admin_create_measurement', { token: getAdminToken(), ...data });
     }
 
     // Create Drive Folder (pre-create or during save)
@@ -562,6 +607,8 @@
         return;
       }
 
+      setStatus('Creating Drive folder...');
+
       createFolderBtn.disabled = true;
       createFolderBtn.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"/></svg>
@@ -572,12 +619,15 @@
         const result = await createDriveFolderViaAppsScript(custName, jobNo || 'NEW', date || new Date().toISOString().split('T')[0]);
         driveLinkInput.value = result.folderUrl;
         driveLinkInput.dataset.folderId = result.folderId || '';
+        fillOpenFolderLink(result.folderUrl);
         driveLinkInput.removeAttribute('readonly');
         driveLinkInput.style.background = '';
         driveLinkInput.style.color = '';
         driveLinkInput.style.cursor = '';
+        setStatus('Drive folder created.', true);
         showToast('Drive folder created: ' + result.folderUrl, true);
       } catch (err) {
+        setStatus('Drive folder failed: ' + err.message, false);
         showToast('Failed to create Drive folder: ' + err.message, false, true);
         console.error(err);
       } finally {
@@ -637,6 +687,7 @@
 
       saveBtn.disabled = true;
       saveBtn.textContent = 'Creating Drive folder...';
+      setStatus('Creating Drive folder (1/2)...');
 
       const data = collectFormData();
       const custName = data.custName;
@@ -652,6 +703,8 @@
           data.driveFolderId = folderResult.folderId || '';
           driveLinkInput.value = folderResult.folderUrl;
           driveLinkInput.dataset.folderId = folderResult.folderId || '';
+          fillOpenFolderLink(folderResult.folderUrl);
+          setStatus('Drive folder created. Saving measurement (2/2)...');
           showToast('Drive folder created', true);
         } else if (!data.driveLink && !isAppsScriptConfigured()) {
           // Local/demo mode: generate a placeholder link so list shows it
@@ -661,6 +714,7 @@
 
         // Step 2: Save measurement data (backend first; local mirror only on success)
         saveBtn.textContent = 'Saving measurement...';
+        setStatus('Saving measurement (2/2)...');
         if (isAppsScriptConfigured()) {
           try {
             await saveMeasurementViaAppsScript(data);
@@ -672,18 +726,29 @@
         saveMeasurementLocal(data);
 
         const urlParams = new URLSearchParams(window.location.search);
-        showToast(urlParams.get('id') ? 'Measurement updated successfully' : 'Measurement saved & Drive folder created', true);
+        const doneMsg = urlParams.get('id') ? 'Measurement updated successfully' : 'Measurement saved & Drive folder created';
+        showToast(doneMsg, true);
 
-        // Redirect after brief delay
-        setTimeout(() => {
-          window.location.href = './admin-measurements.html';
-        }, 1500);
+        // Redirect with visible countdown
+        let n = 3;
+        setStatus(doneMsg + ' Redirecting in ' + n + '...', true);
+        const cd = setInterval(() => {
+          n--;
+          if (n <= 0) {
+            clearInterval(cd);
+            window.location.href = './admin-measurements.html';
+          } else {
+            setStatus(doneMsg + ' Redirecting in ' + n + '...', true);
+          }
+        }, 1000);
 
       } catch (err) {
         showError('Failed: ' + err.message);
+        console.error(err);
+      } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save & Create Drive Link';
-        console.error(err);
+        createFolderBtn.disabled = false;
       }
     });
 
@@ -711,6 +776,7 @@
       set('jobNo', rec.jobNo); set('measureDate', rec.date);
       set('address', rec.address); set('driveLink', rec.driveLink);
       if (rec.driveFolderId) driveLinkInput.dataset.folderId = rec.driveFolderId;
+      if (rec.driveLink) fillOpenFolderLink(rec.driveLink);
       set('others', rec.others);
       MEASUREMENT_FIELDS.forEach(f => set(f, rec[f]));
       document.querySelector('.header-title h1').textContent = 'Edit Measurement';
@@ -740,6 +806,7 @@ https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing`;
 
     // Print function - optimized for A5
     function printMeasurement() {
+      setStatus('Preparing print...');
       const saveBar = document.querySelector('.save-bar');
       const driveHelper = document.querySelector('.drive-helper');
       const errorState = document.querySelector('.error-state');
@@ -749,6 +816,7 @@ https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing`;
       if (errorState) errorState.style.display = 'none';
 
       window.print();
+      setStatus('Done.', true);
 
       setTimeout(() => {
         if (saveBar) saveBar.style.display = '';
@@ -759,6 +827,11 @@ https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing`;
 
     // Save as PDF - optimized for A5
     function saveAsPDF() {
+      if (typeof html2pdf === 'undefined') {
+        setStatus('PDF engine blocked — check connection/adblock', false);
+        return;
+      }
+      setStatus('Preparing PDF...');
       const element = document.querySelector('.card');
       const custName = document.getElementById('custName').value.trim() || 'Measurement';
       const filename = `${custName.replace(/\s+/g, '_')}_SHIBAAM_Measurement.pdf`;
@@ -782,6 +855,12 @@ https://drive.google.com/drive/folders/FOLDER_ID?usp=sharing`;
         if (saveBar) saveBar.style.display = '';
         if (driveHelper) driveHelper.style.display = '';
         if (errorState) errorState.style.display = '';
+        setStatus('Done.', true);
+      }).catch((pdfErr) => {
+        if (saveBar) saveBar.style.display = '';
+        if (driveHelper) driveHelper.style.display = '';
+        if (errorState) errorState.style.display = '';
+        setStatus('PDF failed: ' + (pdfErr && pdfErr.message ? pdfErr.message : pdfErr), false);
       });
     }
   </script>
